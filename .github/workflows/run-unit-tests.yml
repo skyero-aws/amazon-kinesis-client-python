@@ -30,3 +30,23 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
+  build-java:
+    needs: [build]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: [ 3.8, 3.9, 3.10, 3.11 ]
+        os: [ ubuntu-latest, macOS-latest, windows-latest ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: actions/checkout@v4
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'corretto'
