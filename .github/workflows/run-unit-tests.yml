@@ -50,4 +50,9 @@ jobs:
         with:
           java-version: '8'
           distribution: 'corretto'
+      - name: Install jar files
+        run: |
+          python setup.py download_jars
+          python setup.py install
+          echo "Jar commands have been run"
 
