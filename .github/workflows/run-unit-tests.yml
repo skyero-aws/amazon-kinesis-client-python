@@ -54,5 +54,6 @@ jobs:
         run: |
           python setup.py download_jars
           python setup.py install
+          pip install boto3
           sample_kinesis_wordputter.py --stream words -w cat -w dog -w bird -w lobster
 
