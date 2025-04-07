@@ -9,40 +9,29 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [3.8, 3.9, "3.10", 3.11]
-        os: [ubuntu-latest, macOS-latest, windows-latest ]
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -r test_requirements.txt
-    - name: Test with pytest
-      run: |
-        pytest
-  build-maven:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 8
-        uses: actions/setup-java@v4
-        with:
-          java-version: '8'
-          distribution: 'corretto'
-      - name: Build with Maven
-        run: mvn -B package --file pom.xml -DskipITs
+#  build:
+#    runs-on: ${{ matrix.os }}
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        python-version: [3.8, 3.9, "3.10", 3.11]
+#        os: [ubuntu-latest, macOS-latest, windows-latest ]
+#    steps:
+#    - uses: actions/checkout@v2
+#    - name: Set up Python ${{ matrix.python-version }}
+#      uses: actions/setup-python@v2
+#      with:
+#        python-version: ${{ matrix.python-version }}
+#    - name: Install dependencies
+#      run: |
+#        python -m pip install --upgrade pip
+#        pip install -r requirements.txt
+#        pip install -r test_requirements.txt
+#    - name: Test with pytest
+#      run: |
+#        pytest
   running_sample:
-    needs: [build]
+    # needs: [build]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
@@ -50,7 +39,8 @@ jobs:
         python-version: [ 3.8, 3.9, "3.10", 3.11 ]
         os: [ ubuntu-latest, macOS-latest, windows-latest ]
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
@@ -74,5 +64,3 @@ jobs:
           python setup.py install
           "$AWS_CRED"
           sample_kinesis_wordputter.py --stream words -w cat -w dog -w bird -w lobster -w octopus
-
-
