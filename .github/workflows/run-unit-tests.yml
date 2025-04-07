@@ -57,7 +57,7 @@ jobs:
           pip install -r test_requirements.txt
       - name: Install jar files
         env:
-          AWS_CRED: $(( secrets.AWS_CREDS ))
+          AWS_CRED: `$(( secrets.AWS_CREDS ))`
         run: |
           python setup.py download_jars
           python setup.py install
