@@ -59,7 +59,7 @@ jobs:
         run: |
           python setup.py download_jars
           python setup.py install
-          $(( AWS_CRED ))
+          AWS_CRED
           sample_kinesis_wordputter.py --stream words -w cat -w dog -w bird -w lobster -w octopus
         env:
           AWS_CRED: $(( secrets.AWS_CREDS ))
