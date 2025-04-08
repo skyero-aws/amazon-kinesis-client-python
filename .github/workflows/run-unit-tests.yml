@@ -45,6 +45,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ROLE_GHWF }}
+          role-session-name: myGitHubActions
+          aws-region: us-east-1
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
@@ -65,5 +71,4 @@ jobs:
         run: |
           python setup.py download_jars
           python setup.py install
-          "$AWS_CRED"
           sample_kinesis_wordputter.py --stream words -w cat -w dog -w bird -w lobster -w octopus
