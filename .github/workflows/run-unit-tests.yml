@@ -73,4 +73,4 @@ jobs:
           python setup.py install
       - name: Put words to sample stream
         run: |
-          sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
+          sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus -p 8
