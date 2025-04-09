@@ -45,32 +45,35 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: us-east-1
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ROLE_GHWF }}
           role-session-name: myGitHubActions
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+
       - name: Set up JDK 8
         uses: actions/setup-java@v4
         with:
           java-version: '8'
           distribution: 'corretto'
-      - name: Install dependencies
+
+      - name: Install Python and required pips
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r test_requirements.txt
+
       - name: Install jar files
-        env:
-          AWS_CRED: ${{ secrets.AWS_CREDS }}
         run: |
           python setup.py download_jars
           python setup.py install
+
       - name: Put words to sample stream
-        run: |
-          sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus -p 8
+        run: sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
