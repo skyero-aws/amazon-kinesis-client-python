@@ -73,11 +73,9 @@ jobs:
           pip install -r test_requirements.txt
 
       - name: Install jar files
-#        run: |
-#          python setup.py download_jars
-#          python setup.py install
         run: |
           python setup.py download_jars
+          python setup.py install
 
       - name: Put words to sample stream
         run: sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
