@@ -76,8 +76,8 @@ jobs:
 
       - name: Install jar files
         run: |
-          python setup.py download_jars
           python setup.py install
+          python setup.py download_jars
 
       - name: Put words to sample stream
         run: sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
