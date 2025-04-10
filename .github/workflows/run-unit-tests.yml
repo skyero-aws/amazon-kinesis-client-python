@@ -79,5 +79,5 @@ jobs:
         run: sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
 
       - name: Start KCL application
-        run: `amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties`
+        run: amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties
 
