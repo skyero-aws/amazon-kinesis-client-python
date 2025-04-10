@@ -38,12 +38,10 @@ jobs:
     # needs: [build]
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
-#        python-version: [ 3.8, 3.9, "3.10", 3.11 ]
-#        os: [ ubuntu-latest, macOS-latest, windows-latest ]
-        python-version: [ 3.8, 3.9 ]
-        os: [ ubuntu-latest, macOS-latest ]
+        python-version: [ 3.8, 3.9, "3.10", 3.11 ]
+        os: [ ubuntu-latest, macOS-latest, windows-latest ]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -80,7 +78,6 @@ jobs:
       - name: Put words to sample stream
         run: sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
 
-      #backtocks didn't work on the command? raises an error in workflows, just prints the command without the backticks
-#      - name: Start KCL application
-#        run: $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
+      - name: Start KCL application
+        run: amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties
 
