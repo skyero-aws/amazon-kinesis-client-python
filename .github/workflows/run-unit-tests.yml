@@ -78,6 +78,7 @@ jobs:
       - name: Put words to sample stream
         run: sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
 
+      #backtocks didn't work on the command? raises an error in workflows, just prints the command without the backticks
       - name: Start KCL application
-        run: amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties
+        run: \`amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties\`
 
