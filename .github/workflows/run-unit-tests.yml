@@ -84,12 +84,12 @@ jobs:
       - name: Put words to sample stream
         run: sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
 
-      - name: Start KCL application ubuntu and macOS
+      - name: Start KCL application windows
         if: matrix.os  == 'windows-latest'
         run: echo 'Windows version'
         # fix run command for windows
         # run: $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
 
-      - name: Start KCL application windows
+      - name: Start KCL application ubuntu and macOS
         if: matrix.os  != 'windows-latest'
-        # run: $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
+        run: $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
