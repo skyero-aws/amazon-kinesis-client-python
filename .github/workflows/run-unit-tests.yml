@@ -83,15 +83,12 @@ jobs:
           python setup.py install
           python setup.py download_jars
 
-      #Make windows/non-windows version
-      - name: Put words to sample stream
-        steps:
-          - name: is_windows_os
-            if: matrix.os == 'windows-latest'
-            run: python sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
-          - name: is_not_windows_os
-            if: matrix.os != 'windows-latest'
-            run: sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
+      - name: Put words to sample stream (windows)
+        if: matrix.os == 'windows-latest'
+        run: python sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
+      - name: Put words to sample stream (non-windows)
+        if: matrix.os != 'windows-latest'
+        run: sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
 
       #WIP
       #Find Windows alternative to $( ) ->
