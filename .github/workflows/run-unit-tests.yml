@@ -72,7 +72,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r test_requirements.txt
-          brew install coreutils
 
       - name: Test with pytest
         run: |
@@ -109,5 +108,7 @@ jobs:
       - name: Start KCL application macOS
         timeout-minutes: 1
         if: matrix.os  == 'macOS-latest'
-        run: gtimeout 30 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+        run: |
+          brew install coreutils
+          gtimeout 30 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
         # continue-on-error: true
