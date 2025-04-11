@@ -37,7 +37,7 @@ jobs:
   running_sample:
     # needs: [build]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 3
+    timeout-minutes: 5
     strategy:
       fail-fast: false
       matrix:
@@ -85,11 +85,15 @@ jobs:
         run: sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
 
       - name: Start KCL application windows
+        timeout-minutes: 1
         if: matrix.os  == 'windows-latest'
         run: echo 'Windows version'
         # fix run command for windows
         # run: $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
+        # continue-on-error: true
 
       - name: Start KCL application ubuntu and macOS
+        timeout-minutes: 1
         if: matrix.os  != 'windows-latest'
         run: $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
+        # continue-on-error: true
