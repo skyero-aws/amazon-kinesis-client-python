@@ -72,6 +72,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r test_requirements.txt
+          brew install coreutils
 
       - name: Test with pytest
         run: |
@@ -86,16 +87,27 @@ jobs:
       - name: Put words to sample stream
         run: sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
 
+      #WIP
+      #Find Windows alternative to $( ) ->
+      #Find Windows alternative to timeout command (if necessary)
       - name: Start KCL application windows
-        # timeout-minutes: 1
+        timeout-minutes: 1
         if: matrix.os  == 'windows-latest'
         run: echo 'Windows version'
-        # fix run command for windows
         # run: $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
         # continue-on-error: true
 
-      - name: Start KCL application ubuntu and macOS
+      #working as intended
+      - name: Start KCL application ubuntu
         # timeout-minutes: 1
-        if: matrix.os  != 'windows-latest'
-        run: timeout 10 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+        if: matrix.os  == 'ubuntu-latest'
+        run: timeout 30 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+        # continue-on-error: true
+
+      #WIP
+      #Find macOS alternative to timeout command
+      - name: Start KCL application macOS
+        timeout-minutes: 1
+        if: matrix.os  == 'macOS-latest'
+        run: gtimeout 30 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
         # continue-on-error: true
