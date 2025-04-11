@@ -91,5 +91,4 @@ jobs:
 
       - name: Start KCL application windows
         if: matrix.os  != 'windows-latest'
-        run: echo 'ubuntu or macOS'
         # run: $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
