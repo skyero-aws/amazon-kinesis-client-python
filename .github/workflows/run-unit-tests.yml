@@ -90,25 +90,20 @@ jobs:
       #Find Windows alternative to $( ) ->
       #Find Windows alternative to timeout command (if necessary)
       - name: Start KCL application windows
-        timeout-minutes: 1
+        timeout-minutes: 2
         if: matrix.os  == 'windows-latest'
-        run: echo 'Windows version'
-        # run: $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
+        # run: echo 'Windows version'
+        run: $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
         # continue-on-error: true
 
       #working as intended
       - name: Start KCL application ubuntu
-        # timeout-minutes: 1
         if: matrix.os  == 'ubuntu-latest'
         run: timeout 30 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
-        # continue-on-error: true
 
-      #WIP
-      #Find macOS alternative to timeout command
+      #working as intended
       - name: Start KCL application macOS
-        timeout-minutes: 1
         if: matrix.os  == 'macOS-latest'
         run: |
           brew install coreutils
           gtimeout 30 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
-        # continue-on-error: true
