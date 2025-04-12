@@ -73,18 +73,15 @@ jobs:
           pip install -r requirements.txt
           pip install -r test_requirements.txt
 
-      - name: Test with pytest (non-windows)
-        if: matrix.os != 'windows-latest'
+      - name: Test with pytest
         run: pytest
-      - name: Test with pytest (windows)
-        if: matrix.os == 'windows-latest'
-        run: pytest --rootdir=~/
 
       - name: Install jar files
         # rerun python setup.py install at the end if jars download incorrectly
         run: |
           python setup.py install
           python setup.py download_jars
+          python setup.py install
 
       - name: Put words to sample stream (windows)
         if: matrix.os == 'windows-latest'
