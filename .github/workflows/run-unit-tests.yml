@@ -83,12 +83,14 @@ jobs:
           python setup.py download_jars
           python setup.py install
 
+      #working as intended
       - name: Put words to sample stream (windows)
         if: matrix.os == 'windows-latest'
         working-directory: ./samples
         run: |
-          echo cd
           python sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
+
+      #working as intended
       - name: Put words to sample stream (non-windows)
         if: matrix.os != 'windows-latest'
         run: |
@@ -101,7 +103,7 @@ jobs:
         timeout-minutes: 2
         if: matrix.os  == 'windows-latest'
         # run: echo 'Windows version'
-        run: $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
+        run: %amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties%
         # continue-on-error: true
 
       #working as intended
