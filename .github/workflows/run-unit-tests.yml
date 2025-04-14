@@ -80,7 +80,6 @@ jobs:
       - name: Install jar files
         run: |
           python -m pip install .
-#          python setup.py download_jars
           python setup.py download_jars
           python setup.py install
 
