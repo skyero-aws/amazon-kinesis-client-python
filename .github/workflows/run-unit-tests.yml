@@ -106,7 +106,7 @@ jobs:
         working-directory: ./samples
         # run: echo 'Windows version'
         run: |
-          my_cmd='(python amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)'
+          my_cmd=(python amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
           (my_cmd)
         # continue-on-error: true
 
