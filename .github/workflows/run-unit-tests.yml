@@ -75,7 +75,7 @@ jobs:
           pip install -r test_requirements.txt
 
       - name: Test with pytest
-        run: pytest
+        run: python -m pytest
 
       - name: Install jar files
         run: |
