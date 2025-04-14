@@ -80,14 +80,15 @@ jobs:
       - name: Install jar files
         run: |
           python -m pip install .
-          python setup.py download_jars
+#          python setup.py download_jars
+          python -m pip download_jars .
           python -m pip install .
 
       - name: Put words to sample stream (windows)
         if: matrix.os == 'windows-latest'
         working-directory: ./samples
         run: |
-          cd
+          echo cd
           python sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
       - name: Put words to sample stream (non-windows)
         if: matrix.os != 'windows-latest'
