@@ -103,7 +103,6 @@ jobs:
         timeout-minutes: 2
         if: matrix.os  == 'windows-latest'
         working-directory: ./samples
-        # run: echo 'Windows version'
         run: |
           for /f "usebackq tokens=*" %%a in (python amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) do %%a
         # continue-on-error: true
