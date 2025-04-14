@@ -34,6 +34,7 @@ jobs:
 #    - name: Test with pytest
 #      run: |
 #        pytest
+
   running_sample:
     # needs: [build]
     runs-on: ${{ matrix.os }}
@@ -77,7 +78,6 @@ jobs:
         run: pytest
 
       - name: Install jar files
-        # rerun python setup.py install at the end if jars download incorrectly
         run: |
           python setup.py install
           python setup.py download_jars
@@ -86,6 +86,7 @@ jobs:
       - name: Put words to sample stream (windows)
         if: matrix.os == 'windows-latest'
         run: |
+          cd ${{ github.workspace }}
           python ./sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
       - name: Put words to sample stream (non-windows)
         if: matrix.os != 'windows-latest'
