@@ -1,3 +1,8 @@
 [build-system]
-requires = ["setuptools"]
+requires = [
+    "setuptools",
+    "__future__",
+    "amazon_kclpy",
+    "glob"
+]
 build-backend = "setuptools.build_meta"
