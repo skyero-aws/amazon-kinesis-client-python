@@ -75,6 +75,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r test_requirements.txt
+          pip install build
 
       - name: Test with pytest
         run: python -m pytest
@@ -84,7 +85,6 @@ jobs:
           python -m pip install .
           python -m build
           python setup.py download_jars
-          python setup.py install
 
       #working as intended
       - name: Put words to sample stream (windows)
