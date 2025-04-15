@@ -54,7 +54,7 @@ def get_kcl_jar_path():
     :rtype: str
     :return: The absolute path of the KCL jar files needed to run the MultiLangDaemon.
     '''
-    return ':'.join(glob(os.path.join(get_kcl_dir(), 'jars', '*jar')))
+    return ';'.join(glob(os.path.join(get_kcl_dir(), 'jars', '*jar')))
 
 def get_kcl_classpath(properties=None, paths=[]):
     '''
