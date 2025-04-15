@@ -103,7 +103,7 @@ jobs:
         timeout-minutes: 2
         if: matrix.os  == 'windows-latest'
         shell: bash
-        working-directory: ./samples
+        # working-directory: ./samples
         run: |
           echo $PATH
           timeout 30 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
