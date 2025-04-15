@@ -38,7 +38,9 @@ jobs:
   running_sample:
     # needs: [build]
     runs-on: ${{ matrix.os }}
-    # timeout-minutes: 5
+    defaults:
+      run:
+        shell: bash
     strategy:
       fail-fast: false
       matrix:
@@ -102,7 +104,6 @@ jobs:
       - name: Start KCL application windows
         timeout-minutes: 2
         if: matrix.os  == 'windows-latest'
-        shell: bash
         # working-directory: ./samples
         run: |
           echo $PATH
