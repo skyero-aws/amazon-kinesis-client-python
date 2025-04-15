@@ -81,7 +81,7 @@ def get_kcl_classpath(properties=None, paths=[]):
         # Add the dir that the props file is in
         dir_of_file = get_dir_of_file(properties)
         paths.append(dir_of_file)
-    return ":".join([p for p in paths if p != ''])
+    return ";".join([p for p in paths if p != ''])
 
 def get_kcl_app_command(args, multi_lang_daemon_class, properties, log_configuration, paths=[]):
     '''
