@@ -98,6 +98,7 @@ jobs:
 
       #WIP
       #Find Windows alternative to $( ) ->
+      #timeout 30 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
       #Find Windows alternative to timeout command (if necessary)
       - name: Start KCL application windows
         timeout-minutes: 2
@@ -106,9 +107,7 @@ jobs:
         working-directory: ./samples
         run: |
           echo $PATH
-#          timeout 30 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
           amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties
-#          for /f "usebackq tokens=*" %a in ('python amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties') do %a
         # continue-on-error: true
 
       #working as intended
