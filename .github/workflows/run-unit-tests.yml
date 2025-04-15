@@ -85,6 +85,7 @@ jobs:
           python -m pip install .
           python -m build
           python setup.py download_jars
+          python setup.py install
 
       #working as intended
       - name: Put words to sample stream (windows)
