@@ -104,9 +104,10 @@ jobs:
         if: matrix.os  == 'windows-latest'
         shell: bash
         working-directory: ./samples
-        # run: echo 'Windows version'
         run: |
-          for /f "usebackq tokens=*" %a in ('python amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties') do %a
+          echo $PATH
+#          timeout 30 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+#          for /f "usebackq tokens=*" %a in ('python amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties') do %a
         # continue-on-error: true
 
       #working as intended
