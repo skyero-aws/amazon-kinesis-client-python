@@ -13,41 +13,18 @@ permissions:
   contents: read
 
 jobs:
-#  build:
-#    runs-on: ${{ matrix.os }}
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        python-version: [3.8, 3.9, "3.10", 3.11]
-#        os: [ubuntu-latest, macOS-latest, windows-latest ]
-#    steps:
-#    - uses: actions/checkout@v2
-#    - name: Set up Python ${{ matrix.python-version }}
-#      uses: actions/setup-python@v2
-#      with:
-#        python-version: ${{ matrix.python-version }}
-#    - name: Install dependencies
-#      run: |
-#        python -m pip install --upgrade pip
-#        pip install -r requirements.txt
-#        pip install -r test_requirements.txt
-#    - name: Test with pytest
-#      run: |
-#        pytest
-
   running_sample:
-    # needs: [build]
     runs-on: ${{ matrix.os }}
     defaults:
       run:
         shell: bash
+
     strategy:
       fail-fast: false
       matrix:
-#        python-version: [ 3.8, 3.9, "3.10", 3.11 ]
-#        os: [ ubuntu-latest, macOS-latest, windows-latest ]
-        python-version: [ "3.10", 3.11 ]
+        python-version: [ 3.8, 3.9, "3.10", 3.11 ]
         os: [ ubuntu-latest, macOS-latest, windows-latest ]
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -86,37 +63,28 @@ jobs:
           python setup.py download_jars
           python setup.py install
 
-      #working as intended
       - name: Put words to sample stream (windows)
         if: matrix.os == 'windows-latest'
         working-directory: ./samples
         run: |
           python sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
 
-      #working as intended
       - name: Put words to sample stream (non-windows)
         if: matrix.os != 'windows-latest'
         run: |
           sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
 
-      #WIP
-      #Find Windows alternative to $( ) ->
-      #Find Windows alternative to timeout command (if necessary)
       - name: Start KCL application windows
         timeout-minutes: 2
         if: matrix.os  == 'windows-latest'
-        # working-directory: ./samples
         run: |
-          echo $PATH
           timeout 30 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
-        # continue-on-error: true
 
-      #working as intended
       - name: Start KCL application ubuntu
         if: matrix.os  == 'ubuntu-latest'
-        run: timeout 30 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+        run: |
+          timeout 30 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
 
-      #working as intended
       - name: Start KCL application macOS
         if: matrix.os  == 'macOS-latest'
         run: |
