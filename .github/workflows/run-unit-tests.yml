@@ -58,13 +58,7 @@ jobs:
           python setup.py download_jars
           python setup.py install
 
-      - name: Put words to sample stream (windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
-
-      - name: Put words to sample stream (ubuntu and macOS)
-        if: matrix.os != 'windows-latest'
+      - name: Put words to sample stream
         run: |
           sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
 
@@ -81,5 +75,4 @@ jobs:
       - name: Start KCL application (macOS)
         if: matrix.os  == 'macOS-latest'
         run: |
-          brew install coreutils
-          gtimeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+          timeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
