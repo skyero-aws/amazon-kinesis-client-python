@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
-  running_sample:
+  build-running_sample:
     timeout-minutes: 8
     runs-on: ${{ matrix.os }}
     defaults:
