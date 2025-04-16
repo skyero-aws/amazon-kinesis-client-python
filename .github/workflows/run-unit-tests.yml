@@ -4,7 +4,7 @@
 name: UnitTestCoverage
 on:
   push:
-    branches: [ master, java-build-tests ]
+    branches: [ master ]
   pull_request:
     branches: [ master ]
 
