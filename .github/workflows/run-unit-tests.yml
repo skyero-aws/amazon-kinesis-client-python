@@ -60,9 +60,8 @@ jobs:
 
       - name: Put words to sample stream (windows)
         if: matrix.os == 'windows-latest'
-        working-directory: ./samples
         run: |
-          python sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
+          sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
 
       - name: Put words to sample stream (ubuntu and macOS)
         if: matrix.os != 'windows-latest'
