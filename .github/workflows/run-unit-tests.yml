@@ -72,10 +72,16 @@ jobs:
       - name: Start KCL application (windows or ubuntu)
         if: matrix.os  != 'macOS-latest'
         run: |
+          echo $(which java)
+          echo $(whereis java)
+          echo $(java -version)
           timeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
 
       - name: Start KCL application (macOS)
         if: matrix.os  == 'macOS-latest'
         run: |
+          echo $(which java)
+          echo $(whereis java)
+          echo $(java -version)
           brew install coreutils
           gtimeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
