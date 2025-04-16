@@ -62,17 +62,13 @@ jobs:
         run: |
           sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
 
-      - name: Start KCL application (windows)
-        if: matrix.os  == 'windows-latest'
-        run: |
-          timeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
-
-      - name: Start KCL application (ubuntu)
-        if: matrix.os  == 'ubuntu-latest'
+      - name: Start KCL application (windows or ubuntu)
+        if: matrix.os  == 'windows-latest' || 'ubuntu-latest'
         run: |
           timeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
 
       - name: Start KCL application (macOS)
         if: matrix.os  == 'macOS-latest'
         run: |
-          timeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+          brew install coreutils
+          gtimeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
