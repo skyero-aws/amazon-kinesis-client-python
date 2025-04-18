@@ -4,7 +4,7 @@
 name: UnitTestCoverage
 on:
   push:
-    branches: [ master, secret-tests ]
+    branches: [ master, secrets-tests ]
   pull_request:
     branches: [ master ]
 
