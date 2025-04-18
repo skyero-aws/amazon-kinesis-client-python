@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   build-running_sample:
-    timeout-minutes: 8
+    timeout-minutes: 7
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -34,7 +34,8 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: us-east-1
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACTIONS_ACCOUNT_ID }}:role/${{ secrets.AWS_ACTIONS_ROLE }}
+          #role-to-assume: arn:aws:iam::${{ secrets.AWS_ACTIONS_ACCOUNT_ID }}:role/${{ secrets.AWS_ACTIONS_ROLE }}
+          role-to-assume: arn:aws:iam::751999266872:role/GitHubWorkflows
           role-session-name: myGitHubActions
 
       - name: Set up JDK 8
