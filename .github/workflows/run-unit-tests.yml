@@ -5,8 +5,11 @@ name: UnitTestCoverage
 on:
   push:
     branches: [ master, v2.x ]
-  pull_request:
+  pull_request_target:
     branches: [ master, v2.x ]
+    paths:
+      - '**.py'
+      - '**.xml'
 
 permissions:
   id-token: write
