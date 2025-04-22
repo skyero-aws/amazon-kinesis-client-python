@@ -4,9 +4,9 @@
 name: Build Intensive
 on:
   workflow_run:
-    workflows: [build-simple]
+    workflows: [ Build Simple ]
     branches: [ master, v2.x, security-test ]
-    types: [completed]
+    types: [ completed ]
 
 permissions:
   id-token: write
