@@ -7,9 +7,6 @@ on:
     branches: [ master, v2.x, secrets-tests ]
   pull_request_target:
     branches: [ master, v2.x, secrets-tests ]
-    paths:
-      - '**.py'
-      - '**.xml'
 
 permissions:
   id-token: write
