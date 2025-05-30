@@ -76,6 +76,7 @@ jobs:
 
       - name: Install .jar files
         run: |
+          python -m build
           chmod +x scripts/test2.sh
           scripts/test2.sh
         env:
