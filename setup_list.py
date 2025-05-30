@@ -121,12 +121,14 @@ Which will download the required jars and rerun the install.
         # https://repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.2/httpclient-4.2.jar
         #
         prefix = os.getenv("KCL_MVN_REPO_SEARCH_URL", 'https://repo1.maven.org/maven2/')
-        return '{prefix}{path}/{artifact_id}/{version}/{dest}'.format(
-                                        prefix=prefix,
-                                        path='/'.join(group_id.split('.')),
-                                        artifact_id=artifact_id,
-                                        version=version,
-                                        dest=self.package_destination(artifact_id, version))
+        jar_url = '{prefix}{path}/{artifact_id}/{version}/{dest}'.format(
+                                                          prefix=prefix,
+                                                          path='/'.join(group_id.split('.')),
+                                                          artifact_id=artifact_id,
+                                                          version=version,
+                                                          dest=self.package_destination(artifact_id, version))
+            print("jar_url: ",jar_url)
+        return jar_url
 
     def download_file(self, url, dest):
         """
