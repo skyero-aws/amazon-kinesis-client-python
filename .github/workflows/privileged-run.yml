@@ -74,9 +74,9 @@ jobs:
         run: |
           cp amazon-kinesis-client-multilang-3.0.3-SNAPSHOT.jar amazon_kclpy/jars
 
-      - name: Install .jar files
-        run: |
-          python -m build -v
+#      - name: Install .jar files
+#        run: |
+#          python -m build -v
 #          python setup_list.py download_jars
 #          python setup_list.py install
 #          scripts/test2.sh
