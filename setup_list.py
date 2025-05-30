@@ -121,14 +121,12 @@ Which will download the required jars and rerun the install.
         # https://repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.2/httpclient-4.2.jar
         #
         prefix = os.getenv("KCL_MVN_REPO_SEARCH_URL", 'https://repo1.maven.org/maven2/')
-        jar_url = '{prefix}{path}/{artifact_id}/{version}/{dest}'.format(
-                                                          prefix=prefix,
-                                                          path='/'.join(group_id.split('.')),
-                                                          artifact_id=artifact_id,
-                                                          version=version,
-                                                          dest=self.package_destination(artifact_id, version))
-            print("print jar_url: ",jar_url)
-        return jar_url
+        return '{prefix}{path}/{artifact_id}/{version}/{dest}'.format(
+                                        prefix=prefix,
+                                        path='/'.join(group_id.split('.')),
+                                        artifact_id=artifact_id,
+                                        version=version,
+                                        dest=self.package_destination(artifact_id, version))
 
     def download_file(self, url, dest):
         """
@@ -150,7 +148,7 @@ Which will download the required jars and rerun the install.
                 raise Exception("File download appears to have failed - empty or missing file")
 
         except Exception as e:
-            print('Failed to retrieve 1 {url}: {e}'.format(url=url, e=e))
+            print('Failed to retrieve {url}: {e}'.format(url=url, e=e))
             raise
 
     def download_files(self):
@@ -247,21 +245,12 @@ Which will download the required jars and rerun the install.
         print('Attempting to retrieve remote jar {url}'.format(url=url))
         try:
             response = urlopen(url)
-            if response.getcode() != 200:
-                raise Exception(f"HTTP Status Code: {response.getcode()}")
-
-            os.makedirs(os.path.dirname(dest), exist_ok=True)
-
             with open(dest, 'wb') as dest_file:
                 shutil.copyfileobj(response, dest_file)
             print('Saving {url} -> {dest}'.format(url=url, dest=dest))
-
-            if not os.path.exists(dest) or os.path.getsize(dest) == 0:
-                raise Exception("File download appears to have failed - empty or missing file")
-
         except Exception as e:
-            print('Failed to retrieve 2 {url}: {e}'.format(url=url, e=e))
-            raise
+            print('Failed to retrieve {url}: {e}'.format(url=url, e=e))
+            return
 
     def download_files_from_list(self):
         for package in self.packages_from_list:
@@ -271,6 +260,8 @@ Which will download the required jars and rerun the install.
             else:
                 url = self.package_url(package[0], package[1], package[2])
                 self.download_file(url, dest)
+
+
 
 class DownloadJarsCommand(Command):
     description = "Download the jar files needed to run the sample application"
