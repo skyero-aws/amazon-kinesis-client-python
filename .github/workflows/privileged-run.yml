@@ -70,9 +70,9 @@ jobs:
         run: |
           python -m pytest
 
-      - name: Temporary JAR Move Step
-        run: |
-          cp amazon-kinesis-client-multilang-3.0.3-SNAPSHOT.jar amazon_kclpy/jars
+#      - name: Temporary JAR Move Step
+#        run: |
+#          cp amazon-kinesis-client-multilang-3.0.3-SNAPSHOT.jar amazon_kclpy/jars
 
       - name: Install .jar files
         run: |
