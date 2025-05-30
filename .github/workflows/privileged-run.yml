@@ -64,7 +64,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r test_requirements.txt
-          pip install build
+          python -m pip install build
 
       - name: Test with Pytest
         run: |
@@ -76,8 +76,7 @@ jobs:
 
       - name: Install .jar files
         run: |
-          python -m build
-          chmod +x scripts/test2.sh
+          python -m build -v
           scripts/test2.sh
         env:
           KCL_MVN_REPO_SEARCH_URL: https://repo1.maven.org/maven2/
