@@ -6,7 +6,7 @@
 name: Sample Run and Dependabot Auto-merge
 on:
   push:
-    branches: [ master ]
+    branches: [ master, jar-test ]
   pull_request_target:
     branches: [ master ]
   workflow_dispatch:
@@ -67,11 +67,14 @@ jobs:
         run: |
           python -m pytest
 
+      - name: Temporary JAR Move Step
+        run: |
+          cp amazon-kinesis-client-multilang-3.0.3-SNAPSHOT.jar amazon_kclpy/jars
+
       - name: Install .jar files
         run: |
           python -m build
-          python setup.py download_jars
-          python setup.py install
+          scripts/test2.sh
         env:
           KCL_MVN_REPO_SEARCH_URL: https://repo1.maven.org/maven2/
 
