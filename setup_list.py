@@ -148,7 +148,7 @@ Which will download the required jars and rerun the install.
                 raise Exception("File download appears to have failed - empty or missing file")
 
         except Exception as e:
-            print('Failed to retrieve {url}: {e}'.format(url=url, e=e))
+            print('Failed to retrieve 1 {url}: {e}'.format(url=url, e=e))
             raise
 
     def download_files(self):
@@ -249,7 +249,7 @@ Which will download the required jars and rerun the install.
                 shutil.copyfileobj(response, dest_file)
             print('Saving {url} -> {dest}'.format(url=url, dest=dest))
         except Exception as e:
-            print('Failed to retrieve {url}: {e}'.format(url=url, e=e))
+            print('Failed to retrieve 2 {url}: {e}'.format(url=url, e=e))
             return
 
     def download_files_from_list(self):
