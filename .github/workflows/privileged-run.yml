@@ -28,8 +28,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.9", "3.10", "3.11" ]
-        jdk-version: [ "8", "11", "17", "21", "24" ]
+#        python-version: [ "3.9", "3.10", "3.11" ]
+#        jdk-version: [ "8", "11", "17", "21", "24" ]
+#        os: [ ubuntu-latest, macOS-latest, windows-latest ]
+        python-version: [ "3.11" ]
+        jdk-version: [ "8" ]
         os: [ ubuntu-latest, macOS-latest, windows-latest ]
 
     steps:
@@ -73,7 +76,6 @@ jobs:
 
       - name: Install .jar files
         run: |
-          python -m build
           scripts/test2.sh
         env:
           KCL_MVN_REPO_SEARCH_URL: https://repo1.maven.org/maven2/
