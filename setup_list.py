@@ -7,6 +7,7 @@ import sys
 
 import os
 import shutil
+import socket
 import xml.etree.ElementTree as ET
 
 from setuptools import Command
@@ -16,6 +17,7 @@ from setuptools.command.install import install
 if sys.version_info[0] >= 3:
     # Python 3
     from urllib.request import urlopen
+    from urllib.error import URLError
 else:
     # Python 2
     from urllib2 import urlopen
@@ -133,12 +135,21 @@ Which will download the required jars and rerun the install.
         print('Attempting to retrieve remote jar {url}'.format(url=url))
         try:
             response = urlopen(url)
+            if response.getcode() != 200:
+                raise Exception(f"HTTP Status Code: {response.getcode()}")
+
+            os.makedirs(os.path.dirname(dest), exist_ok=True)
+
             with open(dest, 'wb') as dest_file:
                 shutil.copyfileobj(response, dest_file)
             print('Saving {url} -> {dest}'.format(url=url, dest=dest))
+
+            if not os.path.exists(dest) or os.path.getsize(dest) == 0:
+                raise Exception("File download appears to have failed - empty or missing file")
+
         except Exception as e:
             print('Failed to retrieve {url}: {e}'.format(url=url, e=e))
-            return
+            raise
 
     def download_files(self):
         for package in self.packages:
