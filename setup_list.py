@@ -127,7 +127,7 @@ Which will download the required jars and rerun the install.
                                                           artifact_id=artifact_id,
                                                           version=version,
                                                           dest=self.package_destination(artifact_id, version))
-            print("jar_url: ",jar_url)
+            print("print jar_url: ",jar_url)
         return jar_url
 
     def download_file(self, url, dest):
@@ -271,8 +271,6 @@ Which will download the required jars and rerun the install.
             else:
                 url = self.package_url(package[0], package[1], package[2])
                 self.download_file(url, dest)
-
-
 
 class DownloadJarsCommand(Command):
     description = "Download the jar files needed to run the sample application"
