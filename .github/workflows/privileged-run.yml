@@ -67,6 +67,10 @@ jobs:
         run: |
           python -m pytest
 
+      - name: Temp JAR move step
+        run: |
+          cp -v amazon-kinesis-client-multilang-3.0.3-SNAPSHOT.jar amazon_kcl/jars && echo "move successful"
+
       - name: Install .jar files
         run: |
           python -m build
