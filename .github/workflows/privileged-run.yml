@@ -69,6 +69,7 @@ jobs:
 
       - name: Temp JAR move step
         run: |
+          pwd && ls
           mv -v amazon-kinesis-client-multilang-3.0.3-SNAPSHOT.jar amazon_kcl/jars && echo "move successful"
 
       - name: Install .jar files
