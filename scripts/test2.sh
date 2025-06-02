@@ -6,7 +6,7 @@ JAR_DIR="amazon_kclpy/jars"
 
 python "${SETUP_SCRIPT}" download_jars && \
 python "${SETUP_SCRIPT}" install && \
-(cd "${JAR_DIR}" && jar xf "${JAR_FILE}") && \
+(cd "${JAR_DIR}" && jar xf "${JAR_FILE}") && echo "UNZIPPED JAR" && \
 python "${SETUP_SCRIPT}" download_more_jars && \
 python "${SETUP_SCRIPT}" install_more
 
