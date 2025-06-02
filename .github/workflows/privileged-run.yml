@@ -75,7 +75,7 @@ jobs:
       - name: Install .jar files
         run: |
           python -m build
-          bash scripts/test.sh
+          bash scripts/test2.sh
         env:
           KCL_MVN_REPO_SEARCH_URL: https://repo1.maven.org/maven2/
 
