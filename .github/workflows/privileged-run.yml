@@ -71,10 +71,12 @@ jobs:
         run: |
           pwd && ls
           mv -v amazon-kinesis-client-multilang-3.0.3-SNAPSHOT.jar amazon_kclpy/jars/ && echo "move successful"
+          cd amazon_kclpy/jars && ls
 
       - name: Install .jar files
         run: |
           python -m build
+          cd amazon_kclpy/jars && ls && cd -
           bash scripts/test2.sh
         env:
           KCL_MVN_REPO_SEARCH_URL: https://repo1.maven.org/maven2/
