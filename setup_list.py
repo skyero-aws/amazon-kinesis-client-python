@@ -369,9 +369,12 @@ try:
 except ImportError:
     pass
 
+# Change to download_jars and download_additional jars ?? idk
 if __name__ == '__main__':
     commands = {
+        'download_jars': DownloadJarsCommand,
         'download_more_jars': DownloadMoreJarsCommand,
+        'install': InstallThenCheckForJars,
         'install_more': InstallThenCheckForMoreJars,
     }
     try:
