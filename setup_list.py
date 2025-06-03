@@ -360,6 +360,9 @@ try:
             bdist_wheel.run(self)
 
         def run(self):
+            downloader_pom = MavenJarDownloader(self.do_run)
+            downloader_pom.download_and_check()
+
             downloader_list = MavenJarDownloaderList(self.do_run)
             downloader_list.download_and_check_from_list()
 
