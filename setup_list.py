@@ -371,6 +371,7 @@ except ImportError:
 
 if __name__ == '__main__':
     commands = {
+        'download_jars': DownloadJarsCommand,
         'download_more_jars': DownloadMoreJarsCommand,
         'install': InstallThenCheckForJars,
         'install_more': InstallThenCheckForMoreJars,

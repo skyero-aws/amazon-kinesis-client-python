@@ -37,6 +37,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -50,22 +51,23 @@ jobs:
         with:
           java-version: ${{ matrix.jdk-version }}
           distribution: 'corretto'
+          cache: 'maven'
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+          cache: 'pip'
 
       - name: Install Python and required pips
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r test_requirements.txt
+          python -m pip install --upgrade pip --no-cache-dir
+          pip install --no-cache-dir -r {requirements,test_requirements}.txt
           pip install build
 
       - name: Test with Pytest
         run: |
-          python -m pytest
+          python -m pytest -n auto
 
       - name: Temp JAR move step
         run: |
