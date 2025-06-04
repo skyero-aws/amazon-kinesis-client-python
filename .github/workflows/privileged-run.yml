@@ -67,7 +67,7 @@ jobs:
 
       - name: Test with Pytest
         run: |
-          python -m pytest -n auto
+          python -m pytest
 
       - name: Temp JAR move step
         run: |
