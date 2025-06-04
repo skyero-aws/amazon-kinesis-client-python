@@ -360,9 +360,6 @@ try:
             bdist_wheel.run(self)
 
         def run(self):
-            downloader_pom = MavenJarDownloader(self.do_run)
-            downloader_pom.download_and_check()
-
             downloader_list = MavenJarDownloaderList(self.do_run)
             downloader_list.download_and_check_from_list()
 
@@ -371,7 +368,7 @@ except ImportError:
 
 if __name__ == '__main__':
     commands = {
-        'download_more_jars': DownloadMoreJarsCommand
+        'download_more_jars': DownloadMoreJarsCommand,
         'install_more': InstallThenCheckForMoreJars,
     }
     try:
