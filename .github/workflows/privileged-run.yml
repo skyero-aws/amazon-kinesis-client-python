@@ -51,7 +51,6 @@ jobs:
         with:
           java-version: ${{ matrix.jdk-version }}
           distribution: 'corretto'
-          cache: 'maven'
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -77,7 +76,7 @@ jobs:
 
       - name: Install .jar files
         run: |
-          python -m build
+          python -m build --wheel --no-isolation
           cd amazon_kclpy/jars && ls && cd -
           bash scripts/test3.sh
         env:
