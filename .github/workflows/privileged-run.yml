@@ -51,6 +51,7 @@ jobs:
         with:
           java-version: ${{ matrix.jdk-version }}
           distribution: 'corretto'
+          cache: 'maven'
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -62,7 +63,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip --no-cache-dir
           pip install --no-cache-dir -r requirements.txt -r test_requirements.txt
-          pip install --no-cache-dir build
+          pip install build
 
       - name: Test with Pytest
         run: |
@@ -78,7 +79,7 @@ jobs:
         run: |
           python -m build
           cd amazon_kclpy/jars && ls && cd -
-          bash scripts/test2.sh
+          bash scripts/test3.sh
         env:
           KCL_MVN_REPO_SEARCH_URL: https://repo1.maven.org/maven2/
 
