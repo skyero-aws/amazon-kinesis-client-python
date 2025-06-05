@@ -129,7 +129,7 @@ Which will download the required jars and rerun the install.
         except json.JSONDecodeError as e:
             print(f"Error parsing JSON file: {e}")
         except FileNotFoundError as e:
-            print(f"Could not find file: {self.package_list_directory}")
+            print(f"Could not find file: {self.package_json_directory}")
 
         return packages
 
