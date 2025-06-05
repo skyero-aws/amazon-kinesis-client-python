@@ -110,7 +110,7 @@ Which will download the required jars and rerun the install.
         packages = []
 
         try:
-            with open(self.package_list_directory, 'r') as file:
+            with open(self.package_json_directory, 'r') as file:
                 data = json.load(file)
 
                 dependencies = data.get('dependencies', [])
