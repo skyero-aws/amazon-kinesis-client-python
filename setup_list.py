@@ -63,11 +63,8 @@ class MavenJarDownloaderList:
         self.on_completion = on_completion
         self.destdir = destdir
 
-        self.packages_list_file = package_list_file
         self.packages_json_file = package_json_file
-        self.package_list_directory = package_list_directory
         self.package_json_directory = package_json_directory
-        self.packages_from_list = self.parse_packages_from_list()
         self.packages_from_json = self.parse_packages_from_json()
 
     def warning_string(self, missing_jars=[]):
