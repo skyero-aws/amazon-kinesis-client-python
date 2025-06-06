@@ -71,8 +71,6 @@ jobs:
 
       - name: Temp JAR move step
         run: |
-          mkdir -p amazon_kclpy/jars/pom-sync/
-          mv -v dependencies.json amazon_kclpy/jars/pom-sync/ && echo "move successful"
           mv -v amazon-kinesis-client-multilang-3.0.3-SNAPSHOT.jar amazon_kclpy/jars/ && echo "move successful"
 
       - name: Install .jar files
