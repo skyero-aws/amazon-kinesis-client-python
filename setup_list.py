@@ -53,8 +53,8 @@ PYTHON_REQUIREMENTS = [
 REMOTE_MAVEN_PACKAGES_FILE = 'pom.xml'
 DEPENDENCY_LIST_FILE = 'multilang_dependency.txt'
 DEPENDENCY_LIST_FILE_PATH = 'amazon_kclpy/jars/pom-sync/multilang_dependencies.txt'
-DEPENDENCY_JSON_FILE = 'dependencies.json'
-DEPENDENCY_JSON_DIR = 'amazon_kclpy/jars/pom-sync/dependencies.json'
+DEPENDENCY_JSON_FILE = 'multilang_dependencies.json'
+DEPENDENCY_JSON_DIR = 'amazon_kclpy/jars/pom-sync/multilang_dependencies.json'
 MANUAL_JAR_PLACEMENT = 'amazon_kclpy/jars/amazon-kinesis-client-3.0.3-SNAPSHOT.jar'
 
 class MavenJarDownloaderList:
