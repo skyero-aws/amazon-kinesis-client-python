@@ -51,8 +51,6 @@ PYTHON_REQUIREMENTS = [
     'argparse',
 ]
 REMOTE_MAVEN_PACKAGES_FILE = 'pom.xml'
-DEPENDENCY_LIST_FILE = 'multilang_dependency.txt'
-DEPENDENCY_LIST_FILE_PATH = 'amazon_kclpy/jars/pom-sync/multilang_dependencies.txt'
 DEPENDENCY_JSON_FILE = 'multilang_dependencies.json'
 DEPENDENCY_JSON_DIR = 'amazon_kclpy/jars/pom-sync/multilang_dependencies.json'
 MANUAL_JAR_PLACEMENT = 'amazon_kclpy/jars/amazon-kinesis-client-3.0.3-SNAPSHOT.jar'
@@ -85,27 +83,6 @@ Which will download the required jars and rerun the install.
 '''
         return s
 
-    def parse_packages_from_list(self):
-        packages = []
-
-        with open(self.package_list_directory, 'r') as file:
-            for line in file:
-                line = line.strip()
-                if not line or line.startswith('#') or line.startswith('Finished'):
-                    continue
-
-                parts = line.split(':')
-                if len(parts) < 5:
-                    print(f"skipping invalid line: {line}")
-                    continue
-
-                group_id = parts[0].strip()
-                artifact_id = parts[1].strip()
-                version = parts[3].strip()
-
-                packages.append((group_id,artifact_id,version))
-        return packages
-
     def parse_packages_from_json(self):
         packages = []
 
@@ -133,13 +110,6 @@ Which will download the required jars and rerun the install.
 
         return packages
 
-    def download_and_check_from_list(self):
-        self.download_files_from_list()
-        self.on_completion()
-        missing_jars = self.missing_jars_from_list()
-        if len(missing_jars) > 0:
-            raise RuntimeError(self.warning_string(missing_jars))
-
     def download_and_check_from_json(self):
         self.download_files_from_json()
         self.on_completion()
@@ -149,10 +119,6 @@ Which will download the required jars and rerun the install.
 
     def package_destination(self, artifact_id, version):
         return '{artifact_id}-{version}.jar'.format(artifact_id=artifact_id, version=version)
-
-    def missing_jars_from_list(self):
-        file_list = [os.path.join(self.destdir, self.package_destination(p[1], p[2])) for p in self.packages_from_list]
-        return [f for f in file_list if not os.path.isfile(f) and not f.endswith(MANUAL_JAR_PLACEMENT)] # The missing files
 
     def missing_jars_from_json(self):
         file_list = [os.path.join(self.destdir, self.package_destination(p[1], p[2])) for p in self.packages_from_json]
@@ -185,15 +151,6 @@ Which will download the required jars and rerun the install.
         except Exception as e:
             print('Failed to retrieve 2 {url}: {e}'.format(url=url, e=e))
             return
-
-    def download_files_from_list(self):
-        for package in self.packages_from_list:
-            dest = os.path.join(self.destdir, self.package_destination(package[1], package[2]))
-            if os.path.isfile(dest):
-                print('Skipping download of {dest}'.format(dest=dest))
-            else:
-                url = self.package_url(package[0], package[1], package[2])
-                self.download_file(url, dest)
 
     def download_files_from_json(self):
         for package in self.packages_from_json:
