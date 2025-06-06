@@ -8,6 +8,7 @@ JAR_DIR="amazon_kclpy/jars"
 python "${SETUP_SCRIPT_POM}" download_jars && \
 python "${SETUP_SCRIPT_POM}" install && \
 (cd "${JAR_DIR}" && jar xf "${JAR_FILE}") && echo "UNZIPPED JAR" && \
+mv -v dependencies.json amazon_kclpy/jars/pom-sync/ && echo "move successful"
 python "${SETUP_SCRIPT_LIST}" download_more_jars && \
 python "${SETUP_SCRIPT_LIST}" install_more
 
