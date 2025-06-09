@@ -322,8 +322,12 @@ class DownloadMoreJarsCommand(Command):
         """
         Runs when this command is given to setup.py
         """
+        print("Unzipping JAR file first...")
         downloader = MavenJarDownloaderList(on_completion=lambda : None)
-        downloader.unzip_jar("amazon_kclpy/jars/amazon-kinesis-client-multilang-3.0.3-SNAPSHOT.jar")
+        try:
+            downloader.unzip_jar("amazon_kclpy/jars/amazon-kinesis-client-multilang-3.0.3-SNAPSHOT.jar", JAR_DIRECTORY)
+        except Exception as e:
+            print(f"Error unzipping JAR: {e}")
         downloader.download_files_from_json()
         print('''
 Now you should run:
