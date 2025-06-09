@@ -10,6 +10,7 @@ import shutil
 import socket
 import json
 import xml.etree.ElementTree as ET
+import zipfile
 
 from setuptools import Command
 from setuptools import setup

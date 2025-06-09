@@ -8,7 +8,9 @@ import sys
 import os
 import shutil
 import socket
+import json
 import xml.etree.ElementTree as ET
+import zipfile
 
 from setuptools import Command
 from setuptools import setup
@@ -50,33 +52,17 @@ PYTHON_REQUIREMENTS = [
     'argparse',
 ]
 REMOTE_MAVEN_PACKAGES_FILE = 'pom.xml'
-DEPENDENCY_LIST_FILE = 'multilang_dependency.txt'
-DEPENDENCY_LIST_FILE_PATH = 'amazon_kclpy/jars/pom-sync/multilang_dependencies.txt'
+DEPENDENCY_JSON_FILE = 'multilang_dependencies.json'
+DEPENDENCY_JSON_DIR = 'amazon_kclpy/jars/pom-sync/multilang_dependencies.json'
 MANUAL_JAR_PLACEMENT = 'amazon_kclpy/jars/amazon-kinesis-client-3.0.3-SNAPSHOT.jar'
 
-
 class MavenJarDownloader:
-    def __init__(self, on_completion, destdir=JAR_DIRECTORY,
-                 package_list_file=DEPENDENCY_LIST_FILE,
-                 package_list_directory=DEPENDENCY_LIST_FILE_PATH,
-                 pom_file=REMOTE_MAVEN_PACKAGES_FILE):
 
+    def __init__(self, on_completion, destdir=JAR_DIRECTORY, packages_file=REMOTE_MAVEN_PACKAGES_FILE):
         self.on_completion = on_completion
         self.destdir = destdir
-
-        # dependency list and pom handling
-        self.package_list_file = package_list_file
-        self.package_list_directory = package_list_directory
-        self.pom_file = pom_file
-
-        self.packages = self._load_all_packages()
-
-
-    def _load_all_packages(self):
-        pom_packages = self.parse_packages_from_pom()
-        list_packages = self.parse_packages_from_list()
-        all_packages = set(pom_packages + list_packages)
-        return list(all_packages)
+        self.packages_file = packages_file
+        self.packages = self.parse_packages_from_pom()
 
     def warning_string(self, missing_jars=[]):
         s = '''The following jars were not installed because they were not
@@ -99,7 +85,6 @@ Which will download the required jars and rerun the install.
     def parse_packages_from_pom(self):
         maven_root = ET.parse(self.packages_file).getroot()
         maven_version = '{http://maven.apache.org/POM/4.0.0}'
-
         # dictionary of common package versions encoded in `properties` section
         properties = {f"${{{child.tag.replace(maven_version, '')}}}": child.text
                       for child in maven_root.find(f'{maven_version}properties').iter() if 'version' in child.tag}
@@ -114,28 +99,7 @@ Which will download the required jars and rerun the install.
                 else:
                     dependency.append(val)
             packages.append(tuple(dependency))
-        return packages
 
-
-    def parse_packages_from_list(self):
-        packages = []
-
-        with open(self.package_list_directory, 'r') as file:
-            for line in file:
-                line = line.strip()
-                if not line or line.startswith('#') or line.startswith('Finished'):
-                    continue
-
-                parts = line.split(':')
-                if len(parts) < 5:
-                    print(f"skipping invalid line: {line}")
-                    continue
-
-                group_id = parts[0].strip()
-                artifact_id = parts[1].strip()
-                version = parts[3].strip()
-
-                packages.append((group_id,artifact_id,version))
         return packages
 
     def download_and_check(self):
@@ -173,26 +137,14 @@ Which will download the required jars and rerun the install.
         print('Attempting to retrieve remote jar {url}'.format(url=url))
         try:
             response = urlopen(url)
-            if response.getcode() != 200:
-                raise Exception(f"HTTP Status Code: {response.getcode()}")
-
-            os.makedirs(os.path.dirname(dest), exist_ok=True)
-
             with open(dest, 'wb') as dest_file:
                 shutil.copyfileobj(response, dest_file)
             print('Saving {url} -> {dest}'.format(url=url, dest=dest))
-
-            if not os.path.exists(dest) or os.path.getsize(dest) == 0:
-                raise Exception("File download appears to have failed - empty or missing file")
-
         except Exception as e:
-            print('Failed to retrieve 1 {url}: {e}'.format(url=url, e=e))
-            raise
+            print('Failed to retrieve {url}: {e}'.format(url=url, e=e))
+            return
 
     def download_files(self):
-        downloaded = set()
-        failed = []
-
         for package in self.packages:
             dest = os.path.join(self.destdir, self.package_destination(package[1], package[2]))
             if os.path.isfile(dest):
@@ -201,16 +153,15 @@ Which will download the required jars and rerun the install.
                 url = self.package_url(package[0], package[1], package[2])
                 self.download_file(url, dest)
 
-
 class MavenJarDownloaderList:
 
-    def __init__(self, on_completion, destdir=JAR_DIRECTORY, package_list_file=DEPENDENCY_LIST_FILE, package_list_directory=DEPENDENCY_LIST_FILE_PATH):
+    def __init__(self, on_completion, destdir=JAR_DIRECTORY, package_json_file=DEPENDENCY_JSON_FILE, package_json_directory=DEPENDENCY_JSON_DIR):
         self.on_completion = on_completion
         self.destdir = destdir
 
-        self.packages_list_file = package_list_file
-        self.package_list_directory = package_list_directory
-        self.packages_from_list = self.parse_packages_from_list()
+        self.packages_json_file = package_json_file
+        self.package_json_directory = package_json_directory
+        self.packages_from_json = self.parse_packages_from_json()
 
     def warning_string(self, missing_jars=[]):
         s = '''The following jars were not installed because they were not
@@ -230,39 +181,45 @@ Which will download the required jars and rerun the install.
 '''
         return s
 
-    def parse_packages_from_list(self):
+    def parse_packages_from_json(self):
         packages = []
 
-        with open(self.package_list_directory, 'r') as file:
-            for line in file:
-                line = line.strip()
-                if not line or line.startswith('#') or line.startswith('Finished'):
-                    continue
+        try:
+            with open(self.package_json_directory, 'r') as file:
+                data = json.load(file)
 
-                parts = line.split(':')
-                if len(parts) < 5:
-                    print(f"skipping invalid line: {line}")
-                    continue
+                dependencies = data.get('dependencies', [])
 
-                group_id = parts[0].strip()
-                artifact_id = parts[1].strip()
-                version = parts[3].strip()
+                for dependency in dependencies:
+                    if not all(key in dependency for key in ['groupId', 'artifactId', 'version']):
+                        print(f"skipping invalid dependency: {dependency}")
+                        continue
 
-                packages.append((group_id,artifact_id,version))
+                    groupId = dependency['groupId'].strip()
+                    artifactId = dependency['artifactId'].strip()
+                    version = dependency['version'].strip()
+
+                    packages.append((groupId, artifactId, version))
+
+        except json.JSONDecodeError as e:
+            print(f"Error parsing JSON file: {e}")
+        except FileNotFoundError as e:
+            print(f"Could not find file: {self.package_json_directory}")
+
         return packages
 
-    def download_and_check_from_list(self):
-        self.download_files_from_list()
+    def download_and_check_from_json(self):
+        self.download_files_from_json()
         self.on_completion()
-        missing_jars = self.missing_jars_from_list()
+        missing_jars = self.missing_jars_from_json()
         if len(missing_jars) > 0:
             raise RuntimeError(self.warning_string(missing_jars))
 
     def package_destination(self, artifact_id, version):
         return '{artifact_id}-{version}.jar'.format(artifact_id=artifact_id, version=version)
 
-    def missing_jars_from_list(self):
-        file_list = [os.path.join(self.destdir, self.package_destination(p[1], p[2])) for p in self.packages_from_list]
+    def missing_jars_from_json(self):
+        file_list = [os.path.join(self.destdir, self.package_destination(p[1], p[2])) for p in self.packages_from_json]
         return [f for f in file_list if not os.path.isfile(f) and not f.endswith(MANUAL_JAR_PLACEMENT)] # The missing files
 
     def package_url(self, group_id, artifact_id, version):
@@ -293,16 +250,14 @@ Which will download the required jars and rerun the install.
             print('Failed to retrieve 2 {url}: {e}'.format(url=url, e=e))
             return
 
-    def download_files_from_list(self):
-        for package in self.packages_from_list:
+    def download_files_from_json(self):
+        for package in self.packages_from_json:
             dest = os.path.join(self.destdir, self.package_destination(package[1], package[2]))
             if os.path.isfile(dest):
                 print('Skipping download of {dest}'.format(dest=dest))
             else:
                 url = self.package_url(package[0], package[1], package[2])
                 self.download_file(url, dest)
-
-
 
 class DownloadJarsCommand(Command):
     description = "Download the jar files needed to run the sample application"
@@ -328,7 +283,6 @@ Now you should run:
 Which will finish the installation.
 ''')
 
-
 class DownloadMoreJarsCommand(Command):
     description = "Download more jar files needed to run the sample application"
     user_options = []
@@ -344,7 +298,7 @@ class DownloadMoreJarsCommand(Command):
         Runs when this command is given to setup.py
         """
         downloader = MavenJarDownloaderList(on_completion=lambda : None)
-        downloader.download_files_from_list()
+        downloader.download_files_from_json()
         print('''
 Now you should run:
 
@@ -352,7 +306,6 @@ Now you should run:
 
 Which will finish the installation.
 ''')
-
 
 class InstallThenCheckForJars(install):
 
@@ -382,7 +335,7 @@ class InstallThenCheckForMoreJars(install):
         them some advice on how to retry getting the jars.
         """
         downloader = MavenJarDownloaderList(self.do_install)
-        downloader.download_and_check_from_list()
+        downloader.download_and_check_from_json()
 
 
 try:
@@ -401,21 +354,17 @@ try:
             bdist_wheel.run(self)
 
         def run(self):
-            downloader_pom = MavenJarDownloader(self.do_run)
-            downloader_pom.download_and_check()
-
-            downloader_list = MavenJarDownloaderList(self.do_run)
-            downloader_list.download_and_check_from_list()
+            downloader_list = MavenJarDownloader(self.do_run)
+            downloader_list.download_and_check()
 
 except ImportError:
     pass
 
-# Change to download_jars and download_additional jars ?? idk
 if __name__ == '__main__':
     commands = {
         'download_jars': DownloadJarsCommand,
-        'download_more_jars': DownloadMoreJarsCommand,
         'install': InstallThenCheckForJars,
+        'download_more_jars': DownloadMoreJarsCommand,
         'install_more': InstallThenCheckForMoreJars,
     }
     try:

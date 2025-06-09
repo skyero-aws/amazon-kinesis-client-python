@@ -6,7 +6,7 @@
 name: Sample Run and Dependabot Auto-merge
 on:
   push:
-    branches: [ master, jar-remote ]
+    branches: [ master, jar-fix ]
   pull_request_target:
     branches: [ master ]
   workflow_dispatch:
@@ -62,8 +62,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip --no-cache-dir
           pip install --no-cache-dir -r requirements.txt -r test_requirements.txt
-          pip install pytest-runner wheel
-          pip install build
 
       - name: Test with Pytest
         run: |
@@ -75,7 +73,6 @@ jobs:
 
       - name: Install .jar files
         run: |
-          python -m build --no-isolation
           bash scripts/test3.sh
         env:
           KCL_MVN_REPO_SEARCH_URL: https://repo1.maven.org/maven2/
