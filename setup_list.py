@@ -11,6 +11,7 @@ import socket
 import json
 import xml.etree.ElementTree as ET
 import zipfile
+import zipfile
 
 from setuptools import Command
 from setuptools import setup
@@ -153,6 +154,31 @@ Which will download the required jars and rerun the install.
             print('Failed to retrieve 2 {url}: {e}'.format(url=url, e=e))
             return
 
+    def unzip_jar(self, jar_path, extract_to=None):
+        """
+        Extract contents of a JAR file to a directory.
+        
+        Args:
+            jar_path (str): Path to the JAR file
+            extract_to (str, optional): Directory to extract files to
+        """
+        if not os.path.exists(jar_path):
+            raise FileNotFoundError(f"JAR file not found: {jar_path}")
+        
+        # If no extraction directory specified, create one based on the JAR filename
+        if extract_to is None:
+            extract_to = os.path.splitext(jar_path)[0]
+        
+        # Create the extraction directory if it doesn't exist
+        os.makedirs(extract_to, exist_ok=True)
+        
+        # Extract the JAR file
+        with zipfile.ZipFile(jar_path, 'r') as jar:
+            jar.extractall(extract_to)
+        
+        print(f"JAR file extracted to: {extract_to}")
+        return extract_to
+        
     def download_files_from_json(self):
         for package in self.packages_from_json:
             dest = os.path.join(self.destdir, self.package_destination(package[1], package[2]))

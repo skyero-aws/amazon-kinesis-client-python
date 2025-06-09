@@ -259,7 +259,7 @@ Which will download the required jars and rerun the install.
                 url = self.package_url(package[0], package[1], package[2])
                 self.download_file(url, dest)
 
-    def unzip_jar(jar_path, extract_to=None):
+    def unzip_jar(self, jar_path, extract_to=None):
         """
         Args:
             jar_path (str): Path to the JAR file
@@ -281,7 +281,7 @@ Which will download the required jars and rerun the install.
             jar.extractall(extract_to)
 
         print(f"JAR file extracted to: {extract_to}")
-        return
+        return extract_to
 
 
 class DownloadJarsCommand(Command):
