@@ -6,6 +6,8 @@
 /dist/
 /docs/_build/
 /.eggs/
+.DS_Store
+*/.DS_Store
 
 # IntelliJ idea stuff
 .idea
