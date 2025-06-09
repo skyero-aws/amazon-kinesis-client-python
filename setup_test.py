@@ -323,7 +323,7 @@ class DownloadMoreJarsCommand(Command):
         Runs when this command is given to setup.py
         """
         downloader = MavenJarDownloaderList(on_completion=lambda : None)
-        unzip_jar(MANUAL_JAR_PLACEMENT, JAR_DIRECTORY)
+        downloader.unzip_jar(MANUAL_JAR_PLACEMENT, JAR_DIRECTORY)
         downloader.download_files_from_json()
         print('''
 Now you should run:
