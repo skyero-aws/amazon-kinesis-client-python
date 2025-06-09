@@ -259,19 +259,15 @@ Which will download the required jars and rerun the install.
                 url = self.package_url(package[0], package[1], package[2])
                 self.download_file(url, dest)
 
-    def unzip_jar(self, jar_path, extract_to=None):
+    def unzip_jar(self, jar_path, extract_to="."):
         """
+        Extract contents of a JAR file to a directory.
         Args:
             jar_path (str): Path to the JAR file
-            extract_to (str, optional): Directory to extract files to. If None,
-                                       extracts to a directory with the same name as the JAR file.
+            extract_to (str, optional): Directory to extract files to (defaults to current directory)
         """
         if not os.path.exists(jar_path):
             raise FileNotFoundError(f"JAR file not found: {jar_path}")
-
-        # If no extraction directory specified, create one based on the JAR filename
-        if extract_to is None:
-            extract_to = os.path.splitext(jar_path)[0]
 
         # Create the extraction directory if it doesn't exist
         os.makedirs(extract_to, exist_ok=True)
@@ -325,7 +321,7 @@ class DownloadMoreJarsCommand(Command):
         print("Unzipping JAR file first...")
         downloader = MavenJarDownloaderList(on_completion=lambda : None)
         try:
-            downloader.unzip_jar("amazon_kclpy/jars/amazon-kinesis-client-multilang-3.0.3-SNAPSHOT.jar", JAR_DIRECTORY)
+            downloader.unzip_jar("amazon_kclpy/jars/amazon-kinesis-client-multilang-3.0.3-SNAPSHOT.jar", "amazon_kclpy/jars/")
         except Exception as e:
             print(f"Error unzipping JAR: {e}")
         downloader.download_files_from_json()
