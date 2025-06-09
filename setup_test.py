@@ -323,7 +323,7 @@ class DownloadMoreJarsCommand(Command):
         Runs when this command is given to setup.py
         """
         downloader = MavenJarDownloaderList(on_completion=lambda : None)
-        downloader.unzip_jar("amazon_kclpy/jars/amazon-kinesis-client-3.0.3-SNAPSHOT.jar")
+        downloader.unzip_jar("amazon_kclpy/jars/amazon-kinesis-client-multilang-3.0.3-SNAPSHOT.jar")
         downloader.download_files_from_json()
         print('''
 Now you should run:
