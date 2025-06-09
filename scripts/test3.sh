@@ -1,7 +1,7 @@
 #!/bin/sh
 
 SETUP_SCRIPT_POM="setup.py"
-SETUP_SCRIPT_LIST="setup_list.py"
+SETUP_SCRIPT_LIST="setup_test.py"
 JAR_FILE="amazon-kinesis-client-multilang-3.0.3-SNAPSHOT.jar"
 JAR_DIR="amazon_kclpy/jars"
 
