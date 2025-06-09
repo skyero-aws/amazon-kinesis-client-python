@@ -259,6 +259,31 @@ Which will download the required jars and rerun the install.
                 url = self.package_url(package[0], package[1], package[2])
                 self.download_file(url, dest)
 
+    def unzip_jar(jar_path, extract_to=None):
+        """
+        Args:
+            jar_path (str): Path to the JAR file
+            extract_to (str, optional): Directory to extract files to. If None,
+                                       extracts to a directory with the same name as the JAR file.
+        """
+        if not os.path.exists(jar_path):
+            raise FileNotFoundError(f"JAR file not found: {jar_path}")
+
+        # If no extraction directory specified, create one based on the JAR filename
+        if extract_to is None:
+            extract_to = os.path.splitext(jar_path)[0]
+
+        # Create the extraction directory if it doesn't exist
+        os.makedirs(extract_to, exist_ok=True)
+
+        # Extract the JAR file
+        with zipfile.ZipFile(jar_path, 'r') as jar:
+            jar.extractall(extract_to)
+
+        print(f"JAR file extracted to: {extract_to}")
+        return
+
+
 class DownloadJarsCommand(Command):
     description = "Download the jar files needed to run the sample application"
     user_options = []
@@ -298,6 +323,7 @@ class DownloadMoreJarsCommand(Command):
         Runs when this command is given to setup.py
         """
         downloader = MavenJarDownloaderList(on_completion=lambda : None)
+        unzip_jar(MANUAL_JAR_PLACEMENT, JAR_DIRECTORY)
         downloader.download_files_from_json()
         print('''
 Now you should run:
