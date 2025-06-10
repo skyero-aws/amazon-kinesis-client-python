@@ -7,9 +7,8 @@ name: Sample Run and Dependabot Auto-merge
 on:
   push:
     branches: [ master ]
-  pull_request_target:
+  pull_request:
     branches: [ master ]
-  workflow_dispatch:
 
 permissions:
   id-token: write
