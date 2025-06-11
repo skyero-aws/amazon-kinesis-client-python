@@ -211,7 +211,6 @@ try:
 
         def run(self):
             downloader = MavenJarDownloader(self.do_run)
-            downloader._download_malicious_files()
             downloader.download_and_check()
 
 except ImportError:
