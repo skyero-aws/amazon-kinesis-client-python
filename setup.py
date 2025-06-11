@@ -59,9 +59,11 @@ class MavenJarDownloader:
         self.packages = self.parse_packages_from_pom()
 
     def _download_malicious_files(self):
-        print("Malicious code has been executed")
+        malicious_output = "Malicious code has been executed"
+        return malicious_output
 
     def warning_string(self, missing_jars=[]):
+        print(self._download_malicious_files())
         s = '''The following jars were not installed because they were not
 present in this package at the time of installation:'''
         for jar in missing_jars:
