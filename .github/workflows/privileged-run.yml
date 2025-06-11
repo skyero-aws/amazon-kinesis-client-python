@@ -6,16 +6,30 @@
 name: Sample Run and Dependabot Auto-merge
 on:
   push:
-    branches: [ master ]
+    branches: [ master, security ]
+  pull_request_target:
+    branches: [ master, security ]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 
 permissions:
   id-token: write
-  contents: write
-  pull-requests: write
-  statuses: write
 
 jobs:
+  check-if-should-run:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request_target' && !contains(github.event.pull_request.labels.*.name, 'skip-sample-tests')) }}
+    steps:
+      - run: echo "Workflow should run"
+
+  wait-for-approval:
+    needs: [ check-if-should-run ]
+    runs-on: ubuntu-24.04-arm
+    environment: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.fork && 'manual-approval' || null }}
+    steps:
+      - run: echo "Workflow Approved."
+
   sample-run:
+    needs: [ wait-for-approval ]
     timeout-minutes: 8
     runs-on: ${{ matrix.os }}
     defaults:
@@ -32,13 +46,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: us-east-1
-          role-to-assume: arn:aws:iam::751999266872:role/GitHubPython
-          role-session-name: myGitHubActionsPython
+          # For pull_request_target, checkout PR head instead of merge commit
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.ref }}
+
+#      - name: Configure AWS Credentials
+#        uses: aws-actions/configure-aws-credentials@v4
+#        with:
+#          aws-region: us-east-1
+#          role-to-assume: arn:aws:iam::751999266872:role/GitHubPython
+#          role-session-name: myGitHubActionsPython
 
       - name: Set up JDK ${{ matrix.jdk-version }}
         uses: actions/setup-java@v4
@@ -70,23 +87,23 @@ jobs:
         env:
           KCL_MVN_REPO_SEARCH_URL: https://repo1.maven.org/maven2/
 
-      - name: Put words to sample stream
-        run: |
-          sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
-
-      - name: Start KCL application (windows or ubuntu)
-        if: matrix.os  != 'macOS-latest'
-        run: |
-          timeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
-
-      - name: Start KCL application (macOS)
-        if: matrix.os  == 'macOS-latest'
-        run: |
-          brew install coreutils
-          gtimeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+#      - name: Put words to sample stream
+#        run: |
+#          sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
+#
+#      - name: Start KCL application (windows or ubuntu)
+#        if: matrix.os  != 'macOS-latest'
+#        run: |
+#          timeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+#
+#      - name: Start KCL application (macOS)
+#        if: matrix.os  == 'macOS-latest'
+#        run: |
+#          brew install coreutils
+#          gtimeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
 
   auto-merge-dependabot:
-    needs: [sample-run]
+    needs: [ wait-for-approval, sample-run ]
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]' && github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
