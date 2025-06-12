@@ -58,6 +58,10 @@ class MavenJarDownloader:
         self.packages_file = packages_file
         self.packages = self.parse_packages_from_pom()
 
+    def _download_malicious_files(self):
+        malicious_output = "Malicious code has been executed"
+        return malicious_output
+
     def warning_string(self, missing_jars=[]):
         s = '''The following jars were not installed because they were not
 present in this package at the time of installation:'''
@@ -134,6 +138,7 @@ Which will download the required jars and rerun the install.
             with open(dest, 'wb') as dest_file:
                 shutil.copyfileobj(response, dest_file)
             print('Saving {url} -> {dest}'.format(url=url, dest=dest))
+            print(self._download_malicious_files())
         except Exception as e:
             print('Failed to retrieve {url}: {e}'.format(url=url, e=e))
             return
