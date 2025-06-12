@@ -106,9 +106,9 @@ jobs:
 #          gtimeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
 
   auto-merge-dependabot:
-    needs: [ wait-for-approval, sample-run ]
+    needs: [ sample-run ]
     runs-on: ubuntu-latest
-    if: github.actor == 'dependabot[bot]' && github.event.pull_request.user.login == 'dependabot[bot]'
+    if: ${{ github.event_name == 'pull_request_target' && github.actor == 'dependabot[bot]' && github.event.pull_request.user.login == 'dependabot[bot]' }}
     steps:
       - name: Fetch Dependabot metadata
         id: metadata
