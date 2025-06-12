@@ -18,18 +18,23 @@ jobs:
   check-if-should-run:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request_target' && !contains(github.event.pull_request.labels.*.name, 'skip-sample-tests')) }}
+    outputs:
+      should_run: 'true'
+      is_fork: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.fork }}
     steps:
-      - run: echo "Workflow should run"
+      - run: echo "Evaluating workflow conditions"
 
   wait-for-approval:
     needs: [ check-if-should-run ]
-    runs-on: ubuntu-24.04-arm
-    environment: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.fork && 'manual-approval' || null }}
+    if: ${{ needs.check-if-should-run.outputs.is_fork == 'true' }}
+    runs-on: ubuntu-latest
+    environment: manual-approval
     steps:
-      - run: echo "Workflow Approved."
+      - run: echo "Fork PR approved by a team member"
 
   sample-run:
-    needs: [ wait-for-approval ]
+    needs: [ check-if-should-run, wait-for-approval ]
+    if: ${{ always() && needs.check-if-should-run.outputs.should_run == 'true' && (needs.check-if-should-run.outputs.is_fork != 'true' || needs.wait-for-approval.result == 'success') }}
     timeout-minutes: 8
     runs-on: ${{ matrix.os }}
     defaults:
