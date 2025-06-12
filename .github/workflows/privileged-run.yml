@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: manual-approval
     steps:
-      - run: echo "Fork PR approved by a team member"
+      - run: echo "Fork PR approved by a team member."
 
   sample-run:
     needs: [ check-if-should-run, wait-for-approval ]
