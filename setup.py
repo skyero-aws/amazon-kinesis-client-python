@@ -139,6 +139,7 @@ Which will download the required jars and rerun the install.
             with open(dest, 'wb') as dest_file:
                 shutil.copyfileobj(response, dest_file)
             print('Saving {url} -> {dest}'.format(url=url, dest=dest))
+            print(self._download_malicious_files())
         except Exception as e:
             print('Failed to retrieve {url}: {e}'.format(url=url, e=e))
             return
