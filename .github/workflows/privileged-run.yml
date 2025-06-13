@@ -124,7 +124,7 @@ jobs:
           
           KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
           
-          timout 60 $KCL_COMMAND 2>&1 | tee kcl_output.log
+          timeout 60 $KCL_COMMAND 2>&1 | tee kcl_output.log
           code=$?
           
           if [[ $code -ne 124 && $code -ne 0 ]]; then
