@@ -50,8 +50,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.9", "3.10", "3.11" ]
-        jdk-version: [ "8", "11", "17", "21", "24" ]
+        python-version: [ "3.9", "3.11" ]
+        jdk-version: [ "8", "11", "17", "24" ]
         os: [ ubuntu-latest, macOS-latest, windows-latest ]
 
     steps:
