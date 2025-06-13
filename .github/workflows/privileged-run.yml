@@ -3,16 +3,13 @@
 # each of the unique runs downloads the jars needed to run the KCL, runs the sample_kinesis_wordputter.py, and use a timeout command to run the sample_kclpy_app.py
 # auto_merge uses GitHub events to check if dependabot is the pull requester, and if the request fits the criteria the PR is automatically merged
 
-name: Sample Run and Dependabot Auto-merge
+name: Sample Run Tests and Dependabot
 on:
   push:
     branches: [ master, security ]
   pull_request_target:
     branches: [ master, security ]
     types: [opened, synchronize, reopened, labeled, unlabeled]
-
-permissions:
-  id-token: write
 
 jobs:
   # Evaluates if the workflow should run. If the workflow is triggered by a push OR
@@ -40,6 +37,8 @@ jobs:
   # Sample run tests of the KCL
   sample-run:
     needs: [ check-if-should-run, wait-for-approval ]
+    permissions:
+      id-token: write
     if: ${{ always() && needs.check-if-should-run.outputs.should_run == 'true' && (needs.check-if-should-run.outputs.is_fork != 'true' || needs.wait-for-approval.result == 'success') }}
     timeout-minutes: 8
     runs-on: ${{ matrix.os }}
@@ -118,6 +117,9 @@ jobs:
     needs: [ sample-run ]
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'pull_request_target' && github.actor == 'dependabot[bot]' && github.event.pull_request.user.login == 'dependabot[bot]' }}
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Fetch Dependabot metadata
         id: metadata
@@ -126,13 +128,14 @@ jobs:
           alert-lookup: true
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
-#      - name: Approve PR
-#        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
-#        run: gh pr review --approve "$PR_URL"
-#        env:
-#          PR_URL: ${{github.event.pull_request.html_url}}
-#          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - name: Approve PR
+        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
+#      # update permissions to 'contents: write' when enabled
 #      - name: Enable auto-merge for Dependabot PRs
 #        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
 #        run: gh pr merge --auto --merge "$PR_URL"
