@@ -122,12 +122,6 @@ jobs:
           set -o pipefail
           sed -i "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
           sed -i "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
-  
-          echo "=== PROPERTIES FILE ==="
-          cat samples/sample.properties
-          
-          echo "=== STREAM DESCRIPTION ==="
-          aws kinesis describe-stream --stream-name ${{ env.STREAM_NAME }}
           
           echo "=== STREAM RECORDS ==="
           SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
@@ -139,7 +133,6 @@ jobs:
           NEXT_ITERATOR_BEFORE=$(echo $RECORDS_BEFORE | jq -r '.NextShardIterator')
           
           KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-          
           timeout 90 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
           
           echo "=== CHECKING FOR SHARD POSITION CHANGES ==="
@@ -162,12 +155,6 @@ jobs:
           sed -i "" "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
           sed -i "" "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
           
-          echo "=== PROPERTIES FILE ==="
-          cat samples/sample.properties
-          
-          echo "=== STREAM DESCRIPTION ==="
-          aws kinesis describe-stream --stream-name ${{ env.STREAM_NAME }}
-          
           echo "=== STREAM RECORDS ==="
           SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
           aws kinesis get-records --shard-iterator $SHARD_ITERATOR
@@ -178,7 +165,6 @@ jobs:
           NEXT_ITERATOR_BEFORE=$(echo $RECORDS_BEFORE | jq -r '.NextShardIterator')
           
           KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-          
           gtimeout 90 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
 
           echo "=== CHECKING FOR SHARD POSITION CHANGES ==="
