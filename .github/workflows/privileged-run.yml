@@ -1,6 +1,6 @@
-# This workflow will trigger on pushes, pull requests (to master branch), and manually from the GitHub Actions tab (when requested)
-# sample_run uses matrix to create 12 unique combinations of operating systems and python versions
-# each of the 12 runs download the jars needed to run the KCL, run the sample_kinesis_wordputter.py, and use a timeout command to run the sample_kclpy_app.py
+# This workflow will trigger on pushes and pull requests to master branch
+# sample_run uses matrix to create unique combinations of operating systems and python versions
+# each of the unique runs downloads the jars needed to run the KCL, runs the sample_kinesis_wordputter.py, and use a timeout command to run the sample_kclpy_app.py
 # auto_merge uses GitHub events to check if dependabot is the pull requester, and if the request fits the criteria the PR is automatically merged
 
 name: Sample Run and Dependabot Auto-merge
@@ -15,6 +15,9 @@ permissions:
   id-token: write
 
 jobs:
+  # Evaluates if the workflow should run. If the workflow is triggered by a push OR
+  # is triggered by a pull request without the 'skip-sample-tests' label, the workflow should run.
+  # Otherwise, the workflow will be skipped
   check-if-should-run:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request_target' && !contains(github.event.pull_request.labels.*.name, 'skip-sample-tests')) }}
@@ -24,6 +27,8 @@ jobs:
     steps:
       - run: echo "Evaluating workflow conditions"
 
+  # Workflow will pause and wait here if it is triggered by a fork PR. The workflow will continue to wait until
+  # an approved member of the environment 'manual_approval' allows the workflow to run
   wait-for-approval:
     needs: [ check-if-should-run ]
     if: ${{ needs.check-if-should-run.outputs.is_fork == 'true' }}
@@ -32,6 +37,7 @@ jobs:
     steps:
       - run: echo "Fork PR approved by a team member."
 
+  # Sample run tests of the KCL
   sample-run:
     needs: [ check-if-should-run, wait-for-approval ]
     if: ${{ always() && needs.check-if-should-run.outputs.should_run == 'true' && (needs.check-if-should-run.outputs.is_fork != 'true' || needs.wait-for-approval.result == 'success') }}
@@ -49,18 +55,19 @@ jobs:
         os: [ ubuntu-latest, macOS-latest, windows-latest ]
 
     steps:
+      # For pull_request_target, checkout PR head instead of merge commit
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # For pull_request_target, checkout PR head instead of merge commit
           ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.ref }}
 
-#      - name: Configure AWS Credentials
-#        uses: aws-actions/configure-aws-credentials@v4
-#        with:
-#          aws-region: us-east-1
-#          role-to-assume: arn:aws:iam::751999266872:role/GitHubPython
-#          role-session-name: myGitHubActionsPython
+      # Configure AWS Credentials. Role session name is unique to avoid OIDC errors when running heavy tests
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          role-to-assume: ${{ secrets.AWS_ARN_GHA }}
+          role-session-name: GHA-${{ github.run_id }}-${{ matrix.python-version }}-${{ matrix.jdk-version }}-${{ matrix.os }}
 
       - name: Set up JDK ${{ matrix.jdk-version }}
         uses: actions/setup-java@v4
@@ -72,12 +79,12 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+          cache: 'pip'
 
-      - name: Install Python and required pips
+      - name: Install pip and requirements
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r test_requirements.txt
+          python -m pip install --upgrade pip --no-cache-dir
+          pip install --no-cache-dir -r requirements.txt -r test_requirements.txt
 
       - name: Test with Pytest
         run: |
@@ -90,20 +97,23 @@ jobs:
         env:
           KCL_MVN_REPO_SEARCH_URL: https://repo1.maven.org/maven2/
 
-#      - name: Put words to sample stream
-#        run: |
-#          sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
-#
-#      - name: Start KCL application (windows or ubuntu)
-#        if: matrix.os  != 'macOS-latest'
-#        run: |
-#          timeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
-#
-#      - name: Start KCL application (macOS)
-#        if: matrix.os  == 'macOS-latest'
-#        run: |
-#          brew install coreutils
-#          gtimeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+      # Put words to sample stream named kclpysample
+      - name: Put words to sample stream
+        run: |
+          sample_kinesis_wordputter.py --stream kclpysample -w cat -w dog -w bird -w lobster -w octopus
+
+      # Run KCL application for 45 seconds, 'exit success' if timeout is reached (exit 124), 'exit failure' otherwise
+      - name: Start KCL application (windows or ubuntu)
+        if: matrix.os  != 'macOS-latest'
+        run: |
+          timeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+
+      # Run KCL application for 45 seconds, 'exit success' if timeout is reached (exit 124), 'exit failure' otherwise
+      - name: Start KCL application (macOS)
+        if: matrix.os  == 'macOS-latest'
+        run: |
+          brew install coreutils
+          gtimeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
 
   auto-merge-dependabot:
     needs: [ sample-run ]
