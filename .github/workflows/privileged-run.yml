@@ -136,11 +136,25 @@ jobs:
           SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
           aws kinesis get-records --shard-iterator $SHARD_ITERATOR
           
+          echo "=== GETTING INITIAL SHARD POSITION ==="
+          SHARD_ITERATOR_BEFORE=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
+          RECORDS_BEFORE=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR_BEFORE --limit 10)
+          NEXT_ITERATOR_BEFORE=$(echo $RECORDS_BEFORE | jq -r '.NextShardIterator')
+          
           KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
           
           timeout 90 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
           
+          echo "=== CHECKING FOR SHARD POSITION CHANGES ==="
+          SHARD_ITERATOR_AFTER=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
+          RECORDS_AFTER=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR_AFTER --limit 10)
+          NEXT_ITERATOR_AFTER=$(echo $RECORDS_AFTER | jq -r '.NextShardIterator')
           
+          if [ "$NEXT_ITERATOR_BEFORE" != "$NEXT_ITERATOR_AFTER" ]; then
+            echo "Shard iterator position changed - records were consumed"
+          else
+            echo "No change in shard iterator position"
+          fi
 
       # Run KCL application for 45 seconds, 'exit success' if timeout is reached (exit 124), 'exit failure' otherwise
       - name: Start KCL application (macOS)
@@ -164,11 +178,25 @@ jobs:
           SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
           aws kinesis get-records --shard-iterator $SHARD_ITERATOR
           
+          echo "=== GETTING INITIAL SHARD POSITION ==="
+          SHARD_ITERATOR_BEFORE=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
+          RECORDS_BEFORE=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR_BEFORE --limit 10)
+          NEXT_ITERATOR_BEFORE=$(echo $RECORDS_BEFORE | jq -r '.NextShardIterator')
+          
           KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
           
           gtimeout 90 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
-        
-        
+
+          echo "=== CHECKING FOR SHARD POSITION CHANGES ==="
+          SHARD_ITERATOR_AFTER=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
+          RECORDS_AFTER=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR_AFTER --limit 10)
+          NEXT_ITERATOR_AFTER=$(echo $RECORDS_AFTER | jq -r '.NextShardIterator')
+          
+          if [ "$NEXT_ITERATOR_BEFORE" != "$NEXT_ITERATOR_AFTER" ]; then
+            echo "Shard iterator position changed - records were consumed"
+          else
+            echo "No change in shard iterator position"
+          fi
 
       - name: Clean up Kinesis Stream and DynamoDB table
         if: always()
