@@ -119,18 +119,13 @@ jobs:
       - name: Start KCL application (windows or ubuntu)
         if: matrix.os  != 'macOS-latest'
         run: |
+          set -o pipefail
           sed -i "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
           sed -i "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
           
           KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
           
-          timeout 60 $KCL_COMMAND 2>&1 | tee kcl_output.log
-          code=$?
-          
-          if [[ $code -ne 124 && $code -ne 0 ]]; then
-            echo "KCL application failed with exit code $code"
-            exit $code
-          fi
+          timeout 60 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
           
           if grep -q "Record (Partition Key:" kcl_output.log; then
             echo "Some records were successfully processed"
@@ -143,19 +138,14 @@ jobs:
       - name: Start KCL application (macOS)
         if: matrix.os  == 'macOS-latest'
         run: |
+          set -o pipefail
           brew install coreutils
           sed -i "" "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
           sed -i "" "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
           
           KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
           
-          gtimeout 60 $KCL_COMMAND 2>&1 | tee kcl_output.log
-          code=$?
-          
-          if [[ $code -ne 124 && $code -ne 0 ]]; then
-            echo "KCL application failed with exit code $code"
-            exit $code
-          fi
+          gtimeout 60 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
           
           if grep -q "Record (Partition Key:" kcl_output.log; then
             echo "Records were successfully processed"
