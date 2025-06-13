@@ -95,19 +95,26 @@ jobs:
         env:
           KCL_MVN_REPO_SEARCH_URL: https://repo1.maven.org/maven2/
 
+      - name: Set up unique identifiers
+        run: |
+          STREAM_NAME="kclpysample-${{ github.run_id }}-${{ matrix.os }}-py${{ matrix.python-version }}-jdk${{ matrix.jdk-version }}"
+          APP_NAME="PythonKCLSample-${{ github.run_id }}-${{ matrix.os }}-py${{ matrix.python-version }}-jdk${{ matrix.jdk-version }}"
+          echo "Using stream name: $STREAM_NAME"
+          echo "Using application name: $APP_NAME"
+          echo "STREAM_NAME=$STREAM_NAME" >> $GITHUB_ENV
+          echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
+
       # Put words to sample stream with unique name based on run ID
       - name: Put words to sample stream
         run: |
-          STREAM_NAME="kclpysample-${{ github.run_id }}-${{ matrix.os }}-py${{ matrix.python-version }}-jdk${{ matrix.jdk-version }}"
-          echo "Using stream name: $STREAM_NAME"
           sample_kinesis_wordputter.py --stream $STREAM_NAME -w cat -w dog -w bird -w lobster -w octopus
-          echo "STREAM_NAME=$STREAM_NAME" >> $GITHUB_ENV
 
       # Run KCL application for 45 seconds, 'exit success' if timeout is reached (exit 124), 'exit failure' otherwise
       - name: Start KCL application (windows or ubuntu)
         if: matrix.os  != 'macOS-latest'
         run: |
-          sed -i "s/kclpysample/$STREAM_NAME/g" samples/sample.properties
+          sed -i "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
+          sed -i "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
           timeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
 
       # Run KCL application for 45 seconds, 'exit success' if timeout is reached (exit 124), 'exit failure' otherwise
@@ -115,7 +122,8 @@ jobs:
         if: matrix.os  == 'macOS-latest'
         run: |
           brew install coreutils
-          sed -i "" "s/kclpysample/$STREAM_NAME/g" samples/sample.properties
+          sed -i "" "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
+          sed -i "" "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
           gtimeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
 
   auto-merge-dependabot:
