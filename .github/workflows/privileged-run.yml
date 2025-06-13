@@ -104,6 +104,12 @@ jobs:
           echo "STREAM_NAME=$STREAM_NAME" >> $GITHUB_ENV
           echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
 
+      # Create stream and wait for it to become active
+      - name: Create and verify Kinesis stream
+        run: |
+          aws kinesis create-stream --stream-name ${{ env.STREAM_NAME }} --shard-count 1
+          aws kinesis wait stream-exists --stream-name ${{ env.STREAM_NAME }}
+
       # Put words to sample stream with unique name based on run ID
       - name: Put words to sample stream
         run: |
@@ -115,7 +121,7 @@ jobs:
         run: |
           sed -i "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
           sed -i "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
-          timeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+          timeout 60 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
 
       # Run KCL application for 45 seconds, 'exit success' if timeout is reached (exit 124), 'exit failure' otherwise
       - name: Start KCL application (macOS)
@@ -124,7 +130,7 @@ jobs:
           brew install coreutils
           sed -i "" "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
           sed -i "" "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
-          gtimeout 45 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+          gtimeout 60 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
 
   auto-merge-dependabot:
     needs: [ sample-run ]
