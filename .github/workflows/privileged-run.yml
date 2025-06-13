@@ -110,10 +110,10 @@ jobs:
           aws kinesis create-stream --stream-name ${{ env.STREAM_NAME }} --shard-count 1
           aws kinesis wait stream-exists --stream-name ${{ env.STREAM_NAME }}
 
-#      # Put words to sample stream with unique name based on run ID
-#      - name: Put words to sample stream
-#        run: |
-#          sample_kinesis_wordputter.py --stream $STREAM_NAME -w cat -w dog -w bird -w lobster -w octopus
+      # Put words to sample stream with unique name based on run ID
+      - name: Put words to sample stream
+        run: |
+          sample_kinesis_wordputter.py --stream $STREAM_NAME -w cat -w dog -w bird -w lobster -w octopus
 
       # Run KCL application for 45 seconds, 'exit success' if timeout is reached (exit 124), 'exit failure' otherwise
       - name: Start KCL application (windows or ubuntu)
@@ -132,13 +132,42 @@ jobs:
           RECORDS_BEFORE=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR_BEFORE --limit 10)
           NEXT_ITERATOR_BEFORE=$(echo $RECORDS_BEFORE | jq -r '.NextShardIterator')
           
+          echo "=== VERIFYING RECORDS IN STREAM ==="
+          SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
+          INITIAL_RECORDS=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR)
+          RECORD_COUNT_BEFORE=$(echo $INITIAL_RECORDS | jq '.Records | length')
+          
+          if [ "$RECORD_COUNT_BEFORE" -eq 0 ]; then
+            echo "No records found in stream. Test cannot proceed."
+            exit 1
+          fi
+          
+          echo "Found $RECORD_COUNT_BEFORE records in stream before KCL start"
+          NEXT_ITERATOR_BEFORE=$(echo $INITIAL_RECORDS | jq -r '.NextShardIterator')
+          
+          echo "=== STARTING KCL APPLICATION ==="
           KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
           timeout 90 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
           
-          echo "=== CHECKING FOR SHARD POSITION CHANGES ==="
+          echo "=== CHECKING DDB FOR RECORD CONSUMPTION ==="
+          CHECKPOINT_EXISTS=$(aws dynamodb scan --table-name ${{ env.APP_NAME }} --select "COUNT" --filter-expression "attribute_exists(checkpoint)" --query "Count" --output text || echo "0")
+          
+          if [ "$CHECKPOINT_EXISTS" -gt 0 ]; then
+            echo "Found checkpoints in DynamoDB - records were consumed"
+          fi
+          
+          echo "=== CHECKING FOR SHARD ITERATOR POSITION CHANGES ==="
           SHARD_ITERATOR_AFTER=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
           RECORDS_AFTER=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR_AFTER --limit 10)
           NEXT_ITERATOR_AFTER=$(echo $RECORDS_AFTER | jq -r '.NextShardIterator')
+          
+          echo "Founds $RECORD_COUNT_AFTER records in stream after KCL run"
+          
+          if [ "$RECORD_COUNT_AFTER" -lt "$RECORD_COUNT_BEFORE" ]; then
+            echo "Record count decreased from $RECORD_COUNT_BEFORE to $RECORD_COUNT_AFTER - records were consumed"
+          else
+            echo "No evidence of record consumption. Test failed."
+          fi
           
           if [ "$NEXT_ITERATOR_BEFORE" != "$NEXT_ITERATOR_AFTER" ]; then
             echo "Shard iterator position changed - records were consumed"
@@ -178,14 +207,14 @@ jobs:
             echo "No change in shard iterator position"
           fi
 
-#      - name: Clean up Kinesis Stream and DynamoDB table
-#        if: always()
-#        run: |
-#          echo "Cleaning up stream ${{ env.STREAM_NAME }}"
-#          aws kinesis delete-stream --stream-name ${{ env.STREAM_NAME }} || true
-#
-#          echo "Cleaning up DynamoDB table"
-#          aws dynamodb delete-table --table-name ${{ env.APP_NAME }} || true
+      - name: Clean up Kinesis Stream and DynamoDB table
+        if: always()
+        run: |
+          echo "Cleaning up stream ${{ env.STREAM_NAME }}"
+          aws kinesis delete-stream --stream-name ${{ env.STREAM_NAME }} || true
+
+          echo "Cleaning up DynamoDB table"
+          aws dynamodb delete-table --table-name ${{ env.APP_NAME }} || true
 
   auto-merge-dependabot:
     needs: [ sample-run ]
