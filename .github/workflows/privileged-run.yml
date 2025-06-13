@@ -122,9 +122,6 @@ jobs:
           set -o pipefail
           sed -i "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
           sed -i "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
-          
-          sed -i "s|streamArn = arn:aws:kinesis:us-east-5:000000000000:stream/kclpysample|streamArn = arn:aws:kinesis:us-east-1:000000000000:stream/${{ env.STREAM_NAME }}|g" samples/sample.properties
-          sed -i "s|streamName = kclpysample|streamName = ${{ env.STREAM_NAME }}|g" samples/sample.properties
   
           echo "=== PROPERTIES FILE ==="
           cat samples/sample.properties
@@ -164,9 +161,6 @@ jobs:
           brew install coreutils
           sed -i "" "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
           sed -i "" "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
-          
-          sed -i "s|streamArn = arn:aws:kinesis:us-east-5:000000000000:stream/kclpysample|streamArn = arn:aws:kinesis:us-east-1:000000000000:stream/${{ env.STREAM_NAME }}|g" samples/sample.properties
-          sed -i "s|streamName = kclpysample|streamName = ${{ env.STREAM_NAME }}|g" samples/sample.properties
           
           echo "=== PROPERTIES FILE ==="
           cat samples/sample.properties
