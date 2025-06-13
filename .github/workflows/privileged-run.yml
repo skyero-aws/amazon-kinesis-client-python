@@ -6,9 +6,9 @@
 name: Sample Run Tests and Dependabot
 on:
   push:
-    branches: [ master, security ]
+    branches: [ master, sample-improve ]
   pull_request_target:
-    branches: [ master, security ]
+    branches: [ master, sample-improve ]
     types: [opened, synchronize, reopened, labeled, unlabeled]
 
 jobs:
@@ -121,7 +121,23 @@ jobs:
         run: |
           sed -i "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
           sed -i "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
-          timeout 60 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+          
+          KCL_COMMAND=amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties
+          
+          timout 60 $KCL_COMMAND 2>&1 | tee kcl_output.log
+          code=$?
+          
+          if [[ $code -ne 124 && $code -ne 0 ]]; then
+            echo "KCL application failed with exit code $code"
+            exit $code
+          fi
+          
+          if grep -q "Record (Partition Key:" kcl_output.log; then
+            echo "Some records were successfully processed"
+          else
+            echo "No records were processed"
+            exit 1
+          fi
 
       # Run KCL application for 45 seconds, 'exit success' if timeout is reached (exit 124), 'exit failure' otherwise
       - name: Start KCL application (macOS)
@@ -130,7 +146,23 @@ jobs:
           brew install coreutils
           sed -i "" "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
           sed -i "" "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
-          gtimeout 60 $(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties) || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+          
+          KCL_COMMAND=amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties
+          
+          gtimeout 60 $KCL_COMMAND 2>&1 | tee kcl_output.log
+          code=$?
+          
+          if [[ $code -ne 124 && $code -ne 0 ]]; then
+            echo "KCL application failed with exit code $code"
+            exit $code
+          fi
+          
+          if grep -q "Record (Partition Key:" kcl_output.log; then
+            echo "Records were successfully processed"
+          else
+            echo "No records were processed"
+            exit 1
+          fi
 
       - name: Clean up Kinesis Stream and DynamoDB table
         if: always()
