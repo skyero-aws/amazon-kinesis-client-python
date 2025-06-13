@@ -122,7 +122,7 @@ jobs:
           sed -i "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
           sed -i "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
           
-          KCL_COMMAND=amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties
+          KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
           
           timout 60 $KCL_COMMAND 2>&1 | tee kcl_output.log
           code=$?
@@ -147,7 +147,7 @@ jobs:
           sed -i "" "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
           sed -i "" "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
           
-          KCL_COMMAND=amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties
+          KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
           
           gtimeout 60 $KCL_COMMAND 2>&1 | tee kcl_output.log
           code=$?
