@@ -110,10 +110,10 @@ jobs:
           aws kinesis create-stream --stream-name ${{ env.STREAM_NAME }} --shard-count 1
           aws kinesis wait stream-exists --stream-name ${{ env.STREAM_NAME }}
 
-      # Put words to sample stream with unique name based on run ID
-      - name: Put words to sample stream
-        run: |
-          sample_kinesis_wordputter.py --stream $STREAM_NAME -w cat -w dog -w bird -w lobster -w octopus
+#      # Put words to sample stream with unique name based on run ID
+#      - name: Put words to sample stream
+#        run: |
+#          sample_kinesis_wordputter.py --stream $STREAM_NAME -w cat -w dog -w bird -w lobster -w octopus
 
       # Run KCL application for 45 seconds, 'exit success' if timeout is reached (exit 124), 'exit failure' otherwise
       - name: Start KCL application (windows or ubuntu)
@@ -178,14 +178,14 @@ jobs:
             echo "No change in shard iterator position"
           fi
 
-      - name: Clean up Kinesis Stream and DynamoDB table
-        if: always()
-        run: |
-          echo "Cleaning up stream ${{ env.STREAM_NAME }}"
-          aws kinesis delete-stream --stream-name ${{ env.STREAM_NAME }} || true
-          
-          echo "Cleaning up DynamoDB table"
-          aws dynamodb delete-table --table-name ${{ env.APP_NAME }} || true
+#      - name: Clean up Kinesis Stream and DynamoDB table
+#        if: always()
+#        run: |
+#          echo "Cleaning up stream ${{ env.STREAM_NAME }}"
+#          aws kinesis delete-stream --stream-name ${{ env.STREAM_NAME }} || true
+#
+#          echo "Cleaning up DynamoDB table"
+#          aws dynamodb delete-table --table-name ${{ env.APP_NAME }} || true
 
   auto-merge-dependabot:
     needs: [ sample-run ]
