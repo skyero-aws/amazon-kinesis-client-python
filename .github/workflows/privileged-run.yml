@@ -162,7 +162,7 @@ jobs:
           RECORD_COUNT_AFTER=$(echo $RECORDS_AFTER | jq '.Records | length')
           NEXT_ITERATOR_AFTER=$(echo $RECORDS_AFTER | jq -r '.NextShardIterator')
           
-          echo "Found $RECORDS_COUNT_AFTER records in stream after KCL run"
+          echo "Found $RECORD_COUNT_AFTER records in stream after KCL run"
           
           if [ "$RECORD_COUNT_AFTER" -lt "$RECORD_COUNT_BEFORE" ]; then
             echo "Record count decreased from $RECORD_COUNT_BEFORE to $RECORD_COUNT_AFTER - records were consumed"
@@ -172,13 +172,20 @@ jobs:
           
           if [ "$CHECKPOINT_EXISTS" -gt 0 ]; then
             echo "But found checkpoints in DynamoDB - records were likely consumed"
-            exit 0
           fi
           
           if [ "$NEXT_ITERATOR_BEFORE" != "$NEXT_ITERATOR_AFTER" ]; then
             echo "Shard iterator position changed - records were consumed"
           else
             echo "No change in shard iterator position"
+          fi
+          
+          if [ "$RECORD_COUNT_AFTER" -lt "$RECORD_COUNT_BEFORE" ] || [ "$CHECKPOINT_EXISTS" -gt 0 ] || [ "$NEXT_ITERATOR_BEFORE" != "$NEXT_ITERATOR_AFTER" ]; then
+            echo "Test passed: Evidence of record consumption found"
+            exit 0
+          else
+            echo "Test failed: No evidence of record consumption"
+            exit 1
           fi
 
       # Run KCL application for 45 seconds, 'exit success' if timeout is reached (exit 124), 'exit failure' otherwise
