@@ -123,6 +123,16 @@ jobs:
           sed -i "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
           sed -i "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
           
+          echo "=== PROPERTIES FILE ==="
+          cat samples/sample.properties
+          
+          echo "=== STREAM DESCRIPTION ==="
+          aws kinesis describe-stream --stream-name ${{ env.STREAM_NAME }}
+          
+          echo "=== STREAM RECORDS ==="
+          SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
+          aws kinesis get-records --shard-iterator $SHARD_ITERATOR
+          
           KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
           
           timeout 60 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
@@ -142,6 +152,16 @@ jobs:
           brew install coreutils
           sed -i "" "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
           sed -i "" "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
+          
+          echo "=== PROPERTIES FILE ==="
+          cat samples/sample.properties
+          
+          echo "=== STREAM DESCRIPTION ==="
+          aws kinesis describe-stream --stream-name ${{ env.STREAM_NAME }}
+          
+          echo "=== STREAM RECORDS ==="
+          SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
+          aws kinesis get-records --shard-iterator $SHARD_ITERATOR
           
           KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
           
