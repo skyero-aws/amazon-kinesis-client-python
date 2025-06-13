@@ -177,17 +177,21 @@ jobs:
           
           gtimeout 90 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
           
-          echo "=== KCL ACTIVITY SUMMARY ==="
-          grep -i "lease\|shard\|record\|process" kcl_output.log | head -20 || echo "No relevant activity found"
+          echo "=== FULL KCL OUTPUT ==="
+          cat kcl_output.log
           
-          echo "=== CHECKING FOR KCL ACTIVITY ==="
-          if grep -q "Record (Partition Key:" kcl_output.log || grep -q "process_record" kcl_output.log || grep -q "processRecords" kcl_output.log; then
+          echo "=== CHECKING FOR RECORD PROCESSING ==="
+          if grep -q "Record (Partition Key:" kcl_output.log ||
+            grep -q "process_record" kcl_output.log ||
+            grep -q "processRecords" kcl_output.log; then
             echo "Records were successfully processed"
-          elif grep -q "Lease" kcl_output.log && grep -q "Shard" kcl_output.log; then
-            echo "KCL is working (found lease and shard activity)"
           else
-            echo "No evidence of KCL processing"
-            exit 1
+            if grep -q "Lease" kcl_output.log && grep -q "Shard" kcl_output.log; then
+              echo "KCL is working (found lease and shard activity) but no records processed yet"
+            else
+              echo "No evidence of KCL processing"
+              exit 1
+            fi
           fi
 
       - name: Clean up Kinesis Stream and DynamoDB table
