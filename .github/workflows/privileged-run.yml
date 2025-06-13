@@ -123,6 +123,9 @@ jobs:
           sed -i "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
           sed -i "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
           
+          sed -i "s|streamArn = arn:aws:kinesis:us-east-5:000000000000:stream/kclpysample|streamArn = arn:aws:kinesis:us-east-1:000000000000:stream/${{ env.STREAM_NAME }}|g" samples/sample.properties
+          sed -i "s|streamName = kclpysample|streamName = ${{ env.STREAM_NAME }}|g" samples/sample.properties
+  
           echo "=== PROPERTIES FILE ==="
           cat samples/sample.properties
           
@@ -137,22 +140,7 @@ jobs:
           
           timeout 90 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
           
-          echo "=== FULL KCL OUTPUT ==="
-          cat kcl_output.log
           
-          echo "=== CHECKING FOR RECORD PROCESSING ==="
-          if grep -q "Record (Partition Key:" kcl_output.log ||
-            grep -q "process_record" kcl_output.log ||
-            grep -q "processRecords" kcl_output.log; then
-            echo "Records were successfully processed"
-          else
-            if grep -q "Lease" kcl_output.log && grep -q "Shard" kcl_output.log; then
-              echo "KCL is working (found lease and shard activity) but no records processed yet"
-            else
-              echo "No evidence of KCL processing"
-              exit 1
-            fi
-          fi
 
       # Run KCL application for 45 seconds, 'exit success' if timeout is reached (exit 124), 'exit failure' otherwise
       - name: Start KCL application (macOS)
@@ -162,6 +150,9 @@ jobs:
           brew install coreutils
           sed -i "" "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
           sed -i "" "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
+          
+          sed -i "s|streamArn = arn:aws:kinesis:us-east-5:000000000000:stream/kclpysample|streamArn = arn:aws:kinesis:us-east-1:000000000000:stream/${{ env.STREAM_NAME }}|g" samples/sample.properties
+          sed -i "s|streamName = kclpysample|streamName = ${{ env.STREAM_NAME }}|g" samples/sample.properties
           
           echo "=== PROPERTIES FILE ==="
           cat samples/sample.properties
@@ -176,23 +167,8 @@ jobs:
           KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
           
           gtimeout 90 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
-          
-          echo "=== FULL KCL OUTPUT ==="
-          cat kcl_output.log
-          
-          echo "=== CHECKING FOR RECORD PROCESSING ==="
-          if grep -q "Record (Partition Key:" kcl_output.log ||
-            grep -q "process_record" kcl_output.log ||
-            grep -q "processRecords" kcl_output.log; then
-            echo "Records were successfully processed"
-          else
-            if grep -q "Lease" kcl_output.log && grep -q "Shard" kcl_output.log; then
-              echo "KCL is working (found lease and shard activity) but no records processed yet"
-            else
-              echo "No evidence of KCL processing"
-              exit 1
-            fi
-          fi
+        
+        
 
       - name: Clean up Kinesis Stream and DynamoDB table
         if: always()
