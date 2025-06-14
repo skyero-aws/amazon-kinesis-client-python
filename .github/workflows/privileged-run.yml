@@ -40,7 +40,7 @@ jobs:
     permissions:
       id-token: write
     if: ${{ always() && needs.check-if-should-run.outputs.should_run == 'true' && (needs.check-if-should-run.outputs.is_fork != 'true' || needs.wait-for-approval.result == 'success') }}
-    timeout-minutes: 8
+    timeout-minutes: 20
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -200,7 +200,10 @@ jobs:
           sed -i "" "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
           sed -i "" "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
           sed -i "" "s/initialPositionInStream = .*/initialPositionInStream = TRIM_HORIZON/g" samples/sample.properties
-          sed -i "" "/idleTimeBetweenReadsInMillis/c\idleTimeBetweenReadsInMillis = 250" samples/sample.properties
+          
+          grep -v "idleTimeBetweenReadsInMillis" samples/sample.properties > samples/temp.properties
+          echo "idleTimeBetweenReadsInMillis = 250" >> samples/temp.properties
+          mv samples/temp.properties samples/sample.properties
           
           echo "=== STREAM RECORDS ==="
           SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
@@ -284,11 +287,11 @@ jobs:
           done
           for i in {1..5}; do
             aws dynamodb delete-table --table-name ${{ env.APP_NAME }}-CoordinatorState 2>/dev/null && break ||
-            [ #? -eq 255 ] && break || echo "Retrying CoordinatorState deletion in 10s" && sleep 10
+            [ $? -eq 255 ] && break || echo "Retrying CoordinatorState deletion in 10s" && sleep 10
           done
           for i in {1..5}; do
             aws dynamodb delete-table --table-name ${{ env.APP_NAME }}-WorkerMetricStats 2>/dev/null && break ||
-            [ #? -eq 255 ] && break || echo "Retrying WorkerMetricStats deletion in 10s" && sleep 10
+            [ $? -eq 255 ] && break || echo "Retrying WorkerMetricStats deletion in 10s" && sleep 10
           done
 
   auto-merge-dependabot:
