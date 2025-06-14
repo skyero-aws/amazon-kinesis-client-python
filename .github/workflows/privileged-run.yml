@@ -232,6 +232,7 @@ jobs:
 
           echo "Cleaning up DynamoDB table"
           aws dynamodb delete-table --table-name ${{ env.APP_NAME }} || true
+          aws dynamodb delete-table --table-name ${{ env.APP_NAME }}-CoordinatorState || true
 
   auto-merge-dependabot:
     needs: [ sample-run ]
