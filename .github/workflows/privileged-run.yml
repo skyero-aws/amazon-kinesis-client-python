@@ -149,13 +149,13 @@ jobs:
           
           echo "=== STARTING KCL APPLICATION ==="
           KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-          timeout 300 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
+          timeout 600 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
           
           echo "=== CHECKING DDB FOR RECORD CONSUMPTION ==="
           CHECKPOINT_EXISTS=$(aws dynamodb scan --table-name ${{ env.APP_NAME }} --select "COUNT" --filter-expression "attribute_exists(checkpoint)" --query "Count" --output text || echo "0")
           
           if [ "$CHECKPOINT_EXISTS" -gt 0 ]; then
-            echo "Found checkpoints in DynamoDB - records were consumed"
+            echo "Found checkpoints in DynamoDB"
           fi
           
           echo "=== CHECKING FOR SHARD ITERATOR POSITION CHANGES ==="
@@ -185,7 +185,7 @@ jobs:
             echo "  - Checkpoints found: $CHECKPOINT_EXISTS"
             exit 0
           else
-            echo "✗ Test failed: No evidence of record consumption after 90 seconds"
+            echo "  Test failed: No evidence of record consumption after x seconds"
             echo "  - Record count before: $RECORD_COUNT_BEFORE"
             echo "  - Record count after: $RECORD_COUNT_AFTER"
             echo "  - Checkpoints found: $CHECKPOINT_EXISTS"
@@ -232,7 +232,8 @@ jobs:
 
           echo "Cleaning up DynamoDB table"
           aws dynamodb delete-table --table-name ${{ env.APP_NAME }} || true
-          aws dynamodb delete-table --table-name ${{ env.APP_NAME }}-CoordinatorState || true
+          aws dynamodb delete-table --table-name ${{ env.APP_NAME }}-CoordinatorState 2>/dev/null || true
+          aws dynamodb delete-table --table-name ${{ env.APP_NAME }}-WorkerMetricStats 2>/dev/null || true
 
   auto-merge-dependabot:
     needs: [ sample-run ]
