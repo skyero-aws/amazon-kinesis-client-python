@@ -272,6 +272,8 @@ jobs:
       - name: Clean up Kinesis Stream and DynamoDB table
         if: always()
         run: |
+          aws kinesis wait stream-exists --stream-name ${{ env.STREAM_NAME }} || true
+          
           for i in {1..5}; do
             aws kinesis delete-stream --stream-name ${{ env.STREAM_NAME }} && break ||
             echo "Retrying Kinesis deletion in 10s" && sleep 10
