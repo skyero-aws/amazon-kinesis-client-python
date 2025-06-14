@@ -152,7 +152,7 @@ jobs:
           
           echo "=== STARTING KCL APPLICATION ==="
           KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-          timeout 90 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
+          timeout 60 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
           
           echo "=== CHECKING DDB FOR RECORD CONSUMPTION ==="
           LEASE_EXISTS=$(aws dynamodb scan --table-name ${{ env.APP_NAME }} --select "COUNT" --query "Count" --output text || echo "0")
@@ -212,7 +212,7 @@ jobs:
           
           echo "=== STARTING KCL APPLICATION ==="
           KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-          gtimeout 90 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
+          gtimeout 60 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
 
           echo "=== CHECKING DDB FOR RECORD CONSUMPTION ==="
           LEASE_EXISTS=$(aws dynamodb scan --table-name ${{ env.APP_NAME }} --select "COUNT" --query "Count" --output text || echo "0")
@@ -248,21 +248,19 @@ jobs:
         run: |
           aws kinesis wait stream-exists --stream-name ${{ env.STREAM_NAME }} || true
           
-          for i in {1..10}; do
+          for i in {1..5}; do
             aws kinesis delete-stream --stream-name ${{ env.STREAM_NAME }} && break ||
-            echo "Retrying Kinesis deletion in 15s" && sleep 15
+            echo "Retrying Kinesis deletion in 10s" && sleep 10
           done
-          for i in {1..10}; do
+          for i in {1..5}; do
             aws dynamodb delete-table --table-name ${{ env.APP_NAME }} && break ||
-            echo "Retrying DynamoDB Table deletion in 15s" && sleep 15
+            echo "Retrying DynamoDB Table deletion in 10s" && sleep 10
           done
-          for i in {1..10}; do
-            aws dynamodb delete-table --table-name ${{ env.APP_NAME }}-CoordinatorState 2>/dev/null && break ||
-            [ $? -eq 255 ] && break || echo "Retrying CoordinatorState deletion in 15s" && sleep 15
-          done
-          for i in {1..10}; do
-            aws dynamodb delete-table --table-name ${{ env.APP_NAME }}-WorkerMetricStats 2>/dev/null && break ||
-            [ $? -eq 255 ] && break || echo "Retrying WorkerMetricStats deletion in 15s" && sleep 15
+          for SUFFIX in "-CoordinatorState" "-WorkerMetricStats" "-LeaseManagement"; do
+            if aws dynamodb describe-table --table-name ${{ env.APP_NAME }}$SUFFIX &>/dev/null; then
+              echo "Deleting table ${{ env.APP_NAME }}$SUFFIX"
+              aws dynamodb delete-table --table-name ${{ env.APP_NAME }}$SUFFIX || true
+            fi
           done
 
   auto-merge-dependabot:
