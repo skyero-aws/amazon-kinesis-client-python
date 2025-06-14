@@ -127,7 +127,7 @@ jobs:
           
           echo "Found $RECORD_COUNT_BEFORE records in stream before KCL start"
 
-      # Run KCL application for 45 seconds, 'exit success' if timeout is reached (exit 124), 'exit failure' otherwise
+      # Run KCL application for 90 seconds, 'exit success' if timeout is reached (exit 124), 'exit failure' otherwise
       - name: Start KCL application (windows or ubuntu)
         if: matrix.os  != 'macOS-latest'
         run: |
@@ -152,7 +152,7 @@ jobs:
           
           echo "=== STARTING KCL APPLICATION ==="
           KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-          timeout 120 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
+          timeout 90 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
           
           echo "=== CHECKING DDB FOR RECORD CONSUMPTION ==="
           LEASE_EXISTS=$(aws dynamodb scan --table-name ${{ env.APP_NAME }} --select "COUNT" --query "Count" --output text || echo "0")
@@ -183,7 +183,7 @@ jobs:
             exit 1
           fi
 
-      # Run KCL application for 45 seconds, 'exit success' if timeout is reached (exit 124), 'exit failure' otherwise
+      # Run KCL application for 90 seconds, 'exit success' if timeout is reached (exit 124), 'exit failure' otherwise
       - name: Start KCL application (macOS)
         if: matrix.os  == 'macOS-latest'
         run: |
@@ -212,7 +212,7 @@ jobs:
           
           echo "=== STARTING KCL APPLICATION ==="
           KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-          gtimeout 120 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
+          gtimeout 90 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
 
           echo "=== CHECKING DDB FOR RECORD CONSUMPTION ==="
           LEASE_EXISTS=$(aws dynamodb scan --table-name ${{ env.APP_NAME }} --select "COUNT" --query "Count" --output text || echo "0")
@@ -248,21 +248,21 @@ jobs:
         run: |
           aws kinesis wait stream-exists --stream-name ${{ env.STREAM_NAME }} || true
           
-          for i in {1..5}; do
+          for i in {1..10}; do
             aws kinesis delete-stream --stream-name ${{ env.STREAM_NAME }} && break ||
-            echo "Retrying Kinesis deletion in 10s" && sleep 10
+            echo "Retrying Kinesis deletion in 15s" && sleep 15
           done
-          for i in {1..5}; do
+          for i in {1..10}; do
             aws dynamodb delete-table --table-name ${{ env.APP_NAME }} && break ||
-            echo "Retrying DynamoDB Table deletion in 10s" && sleep 10
+            echo "Retrying DynamoDB Table deletion in 15s" && sleep 15
           done
-          for i in {1..5}; do
+          for i in {1..10}; do
             aws dynamodb delete-table --table-name ${{ env.APP_NAME }}-CoordinatorState 2>/dev/null && break ||
-            [ $? -eq 255 ] && break || echo "Retrying CoordinatorState deletion in 10s" && sleep 10
+            [ $? -eq 255 ] && break || echo "Retrying CoordinatorState deletion in 15s" && sleep 15
           done
-          for i in {1..5}; do
+          for i in {1..10}; do
             aws dynamodb delete-table --table-name ${{ env.APP_NAME }}-WorkerMetricStats 2>/dev/null && break ||
-            [ $? -eq 255 ] && break || echo "Retrying WorkerMetricStats deletion in 10s" && sleep 10
+            [ $? -eq 255 ] && break || echo "Retrying WorkerMetricStats deletion in 15s" && sleep 15
           done
 
   auto-merge-dependabot:
