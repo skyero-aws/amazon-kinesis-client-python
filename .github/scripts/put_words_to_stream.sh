@@ -2,7 +2,7 @@
 
 sample_kinesis_wordputter.py --stream $STREAM_NAME -w cat -w dog -w bird -w lobster -w octopus
 
-SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
+SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name $STREAM_NAME --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
 INITIAL_RECORDS=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR)
 RECORD_COUNT_BEFORE=$(echo $INITIAL_RECORDS | jq '.Records | length')
 
