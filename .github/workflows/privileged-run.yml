@@ -131,65 +131,31 @@ jobs:
         run: |
           chmod +x .github/scripts/put_words_to_stream.sh
           .github/scripts/put_words_to_stream.sh
-#          sample_kinesis_wordputter.py --stream $STREAM_NAME -w cat -w dog -w bird -w lobster -w octopus
-#
-#          SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
-#          INITIAL_RECORDS=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR)
-#          RECORD_COUNT_BEFORE=$(echo $INITIAL_RECORDS | jq '.Records | length')
-#
-#          if [ "$RECORD_COUNT_BEFORE" -eq 0 ]; then
-#            echo "No records found in stream. Test cannot proceed."
-#            exit 1
-#          fi
-#          echo "Found $RECORD_COUNT_BEFORE records in stream before KCL start"
         env:
           STREAM_NAME: ${{ env.STREAM_NAME }}
 
       - name: Start KCL application
         run: |
-          set -o pipefail
-          if [[ "${{matrix.os }}" == "macOS-latest" ]]; then
-            brew install coreutils
-            KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-            gtimeout 90 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
-          else
-            KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-            timeout 90 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
-          fi
+          chmod +x .github/scripts/start_kcl.sh
+          .github/scripts/start_kcl.sh
+        env:
+          RUNNER_OS: ${{ matrix.os }}
 
       - name: Verify KCL Functionality
         run: |
-          echo "=== CHECKING DDB FOR RECORD CONSUMPTION ==="
-          LEASE_EXISTS=$(aws dynamodb scan --table-name ${{ env.APP_NAME }} --select "COUNT" --query "Count" --output text || echo "0")
-          CHECKPOINT_EXISTS=$(aws dynamodb scan --table-name ${{ env.APP_NAME }} --select "COUNT" --filter-expression "attribute_exists(checkpoint)" --query "Count" --output text || echo "0")
-          
-          echo "Found $LEASE_EXISTS leases and $CHECKPOINT_EXISTS checkpoints in DynamoDB"
-          
-          if [ "$LEASE_EXISTS" -gt 0 ] && [ "$CHECKPOINT_EXISTS" -gt 0 ]; then
-            echo "Test passed: Found both leases and checkpoints in DDB (KCL is fully functional)"
-            exit 0
-          else
-            echo "Test failed: KCL not fully functional"
-            echo "Lease(s) found: $LEASE_EXISTS"
-            echo "Checkpoint(s) found: $CHECKPOINT_EXISTS"
-            exit 1
-          fi
+          chmod +x .github/scripts/verify_kcl.sh
+          .github/scripts/verify_kcl.sh
+        env:
+          APP_NAME: ${{ APP_NAME }}
 
       - name: Clean up Kinesis Stream and DynamoDB table
         if: always()
         run: |
-          aws kinesis delete-stream --stream-name ${{ env.STREAM_NAME }}
-          
-          for i in {1..3}; do
-            aws dynamodb delete-table --table-name ${{ env.APP_NAME }} && break ||
-            echo "Retrying DynamoDB Table deletion in 10s" && sleep 10
-          done
-          for SUFFIX in "-CoordinatorState" "-WorkerMetricStats" "-LeaseManagement"; do
-            if aws dynamodb describe-table --table-name ${{ env.APP_NAME }}$SUFFIX &>/dev/null; then
-              echo "Deleting table ${{ env.APP_NAME }}$SUFFIX"
-              aws dynamodb delete-table --table-name ${{ env.APP_NAME }}$SUFFIX || true
-            fi
-          done
+          chmod +x .github/scripts/clean_up_stream_table.sh
+          .github/scripts/clean_up_stream_table.sh
+        env:
+          STREAM_NAME: ${{ env.STREAM_NAME }}
+          APP_NAME: ${{ env.APP_NAME }}
 
   auto-merge-dependabot:
     needs: [ sample-run ]
