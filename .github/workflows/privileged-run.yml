@@ -139,14 +139,14 @@ jobs:
           chmod +x .github/scripts/start_kcl.sh
           .github/scripts/start_kcl.sh
         env:
-          RUNNER_OS: ${{ matrix.os }}
+          RUNNER_OS: ${{ env.matrix.os }}
 
       - name: Verify KCL Functionality
         run: |
           chmod +x .github/scripts/verify_kcl.sh
           .github/scripts/verify_kcl.sh
         env:
-          APP_NAME: ${{ APP_NAME }}
+          APP_NAME: ${{ env.APP_NAME }}
 
       - name: Clean up Kinesis Stream and DynamoDB table
         if: always()
