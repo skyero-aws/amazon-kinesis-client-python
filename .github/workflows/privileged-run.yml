@@ -159,18 +159,15 @@ jobs:
           LEASE_EXISTS=$(aws dynamodb scan --table-name ${{ env.APP_NAME }} --select "COUNT" --query "Count" --output text || echo "0")
           CHECKPOINT_EXISTS=$(aws dynamodb scan --table-name ${{ env.APP_NAME }} --select "COUNT" --filter-expression "attribute_exists(checkpoint)" --query "Count" --output text || echo "0")
           
-          if [ "$CHECKPOINT_EXISTS" -gt 0 ]; then
-            echo "Test passed: Found checkpoints in DynamoDB (KCL is tracking progress)"
-            echo "$CHECKPOINT_EXISTS"
-            exit 0
-          elif [ "$LEASE_EXISTS" -gt 0 ]; then
-            echo "Test passed: Found leases in DynamoDB (KCL is running)"
-            exit 0
-          elif grep -q "Processing record" kcl_output.log; then
-            echo "Test passed: Found evidence of record processing in logs"
+          echo "Found $LEASE_EXISTS leases and $CHECKPOINT_EXISTS checkpoints in DynamoDB"
+          
+          if [ "$LEASE_EXISTS" -gt 0 ] && [ "$CHECKPOINT_EXISTS" -gt 0 ]; then
+            echo "Test passed: Found both leases and checkpoints in DDB (KCL is fully functional"
             exit 0
           else
-            echo "Test failed: No evidence of KCL processing after timeout"
+            echo "Test failed: KCL not fully functional"
+            echo "Leases found: $LEASE_EXISTS"
+            echo "Checkpoints found: $CHECKPOINT_EXISTS"
             exit 1
           fi
 
