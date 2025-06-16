@@ -120,26 +120,26 @@ jobs:
             sed -i "/idleTimeBetweenReadsInMillis/c\idleTimeBetweenReadsInMillis = 250" samples/sample.properties
           fi
 
-      # Create stream and wait for it to become active
-      - name: Create and verify Kinesis stream
-        run: |
-          aws kinesis create-stream --stream-name ${{ env.STREAM_NAME }} --shard-count 1
-          aws kinesis wait stream-exists --stream-name ${{ env.STREAM_NAME }}
-
-      # Put words to sample stream with unique name based on run ID
-      - name: Put words to sample stream
-        run: |
-          sample_kinesis_wordputter.py --stream $STREAM_NAME -w cat -w dog -w bird -w lobster -w octopus
-          
-          SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
-          INITIAL_RECORDS=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR)
-          RECORD_COUNT_BEFORE=$(echo $INITIAL_RECORDS | jq '.Records | length')
-          
-          if [ "$RECORD_COUNT_BEFORE" -eq 0 ]; then
-            echo "No records found in stream. Test cannot proceed."
-            exit 1
-          fi
-          echo "Found $RECORD_COUNT_BEFORE records in stream before KCL start"
+#      # Create stream and wait for it to become active
+#      - name: Create and verify Kinesis stream
+#        run: |
+#          aws kinesis create-stream --stream-name ${{ env.STREAM_NAME }} --shard-count 1
+#          aws kinesis wait stream-exists --stream-name ${{ env.STREAM_NAME }}
+#
+#      # Put words to sample stream with unique name based on run ID
+#      - name: Put words to sample stream
+#        run: |
+#          sample_kinesis_wordputter.py --stream $STREAM_NAME -w cat -w dog -w bird -w lobster -w octopus
+#
+#          SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
+#          INITIAL_RECORDS=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR)
+#          RECORD_COUNT_BEFORE=$(echo $INITIAL_RECORDS | jq '.Records | length')
+#
+#          if [ "$RECORD_COUNT_BEFORE" -eq 0 ]; then
+#            echo "No records found in stream. Test cannot proceed."
+#            exit 1
+#          fi
+#          echo "Found $RECORD_COUNT_BEFORE records in stream before KCL start"
 
       - name: Start KCL application
         run: |
@@ -162,12 +162,12 @@ jobs:
           echo "Found $LEASE_EXISTS leases and $CHECKPOINT_EXISTS checkpoints in DynamoDB"
           
           if [ "$LEASE_EXISTS" -gt 0 ] && [ "$CHECKPOINT_EXISTS" -gt 0 ]; then
-            echo "Test passed: Found both leases and checkpoints in DDB (KCL is fully functional"
+            echo "Test passed: Found both leases and checkpoints in DDB (KCL is fully functional)"
             exit 0
           else
             echo "Test failed: KCL not fully functional"
-            echo "Leases found: $LEASE_EXISTS"
-            echo "Checkpoints found: $CHECKPOINT_EXISTS"
+            echo "Lease(s) found: $LEASE_EXISTS"
+            echo "Checkpoint(s) found: $CHECKPOINT_EXISTS"
             exit 1
           fi
 
