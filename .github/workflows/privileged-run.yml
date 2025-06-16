@@ -120,15 +120,17 @@ jobs:
             sed -i "/idleTimeBetweenReadsInMillis/c\idleTimeBetweenReadsInMillis = 250" samples/sample.properties
           fi
 
-#      # Create stream and wait for it to become active
-#      - name: Create and verify Kinesis stream
-#        run: |
-#          aws kinesis create-stream --stream-name ${{ env.STREAM_NAME }} --shard-count 1
-#          aws kinesis wait stream-exists --stream-name ${{ env.STREAM_NAME }}
-#
-#      # Put words to sample stream with unique name based on run ID
-#      - name: Put words to sample stream
-#        run: |
+      # Create stream and wait for it to become active
+      - name: Create and verify Kinesis stream
+        run: |
+          aws kinesis create-stream --stream-name ${{ env.STREAM_NAME }} --shard-count 1
+          aws kinesis wait stream-exists --stream-name ${{ env.STREAM_NAME }}
+
+      # Put words to sample stream with unique name based on run ID
+      - name: Put words to sample stream
+        run: |
+          chmod +x .github/scripts/put_words_to_stream.sh
+          .github/scripts/put_words_to_stream.sh
 #          sample_kinesis_wordputter.py --stream $STREAM_NAME -w cat -w dog -w bird -w lobster -w octopus
 #
 #          SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
@@ -140,6 +142,8 @@ jobs:
 #            exit 1
 #          fi
 #          echo "Found $RECORD_COUNT_BEFORE records in stream before KCL start"
+        env:
+          STREAM_NAME: ${{ env.STREAM_NAME }}
 
       - name: Start KCL application
         run: |
