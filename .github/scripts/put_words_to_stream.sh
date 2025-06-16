@@ -1,5 +1,4 @@
 #!/bin/bash
-set +e
 
 sample_kinesis_wordputter.py --stream $STREAM_NAME -w cat -w dog -w bird -w lobster -w octopus
 
