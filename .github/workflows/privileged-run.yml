@@ -141,20 +141,17 @@ jobs:
           fi
           echo "Found $RECORD_COUNT_BEFORE records in stream before KCL start"
 
-      - name: Start KCL application (windows or ubuntu)
-        if: matrix.os  != 'macOS-latest'
+      - name: Start KCL application
         run: |
           set -o pipefail
-          KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-          timeout 900 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
-
-      - name: Start KCL application (macOS)
-        if: matrix.os  == 'macOS-latest'
-        run: |
-          set -o pipefail
-          brew install coreutils
-          KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-          gtimeout 900 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
+          if [[ "${{matrix.os }}" == "macOS-latest" ]]; then
+            brew install coreutils
+            KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
+            gtimeout 90 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
+          else
+            KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
+            timeout 90 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
+          fi
 
       - name: Verify KCL Functionality
         run: |
@@ -162,11 +159,12 @@ jobs:
           LEASE_EXISTS=$(aws dynamodb scan --table-name ${{ env.APP_NAME }} --select "COUNT" --query "Count" --output text || echo "0")
           CHECKPOINT_EXISTS=$(aws dynamodb scan --table-name ${{ env.APP_NAME }} --select "COUNT" --filter-expression "attribute_exists(checkpoint)" --query "Count" --output text || echo "0")
           
-          if [ "$LEASE_EXISTS" -gt 0 ]; then
-            echo "Test passed: Found leases in DynamoDB (KCL is running)"
-            exit 0
-          elif [ "$CHECKPOINT_EXISTS" -gt 0 ]; then
+          if [ "$CHECKPOINT_EXISTS" -gt 0 ]; then
             echo "Test passed: Found checkpoints in DynamoDB (KCL is tracking progress)"
+            echo "$CHECKPOINT_EXISTS"
+            exit 0
+          elif [ "$LEASE_EXISTS" -gt 0 ]; then
+            echo "Test passed: Found leases in DynamoDB (KCL is running)"
             exit 0
           elif grep -q "Processing record" kcl_output.log; then
             echo "Test passed: Found evidence of record processing in logs"
