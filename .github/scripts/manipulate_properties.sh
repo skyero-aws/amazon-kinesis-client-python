@@ -14,3 +14,5 @@ else
   sed -i "s/initialPositionInStream = .*/initialPositionInStream = TRIM_HORIZON/g" samples/sample.properties
   sed -i "/idleTimeBetweenReadsInMillis/c\idleTimeBetweenReadsInMillis = 250" samples/sample.properties
 fi
+
+cat samples/sample.properties
