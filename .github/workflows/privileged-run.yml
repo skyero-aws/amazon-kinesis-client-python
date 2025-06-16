@@ -132,6 +132,7 @@ jobs:
         if: matrix.os  != 'macOS-latest'
         run: |
           set -o pipefail
+          
           sed -i "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
           sed -i "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
           sed -i "s/initialPositionInStream = .*/initialPositionInStream = TRIM_HORIZON/g" samples/sample.properties
@@ -189,10 +190,10 @@ jobs:
         run: |
           set -o pipefail
           brew install coreutils
+          
           sed -i "" "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
           sed -i "" "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
           sed -i "" "s/initialPositionInStream = .*/initialPositionInStream = TRIM_HORIZON/g" samples/sample.properties
-          
           grep -v "idleTimeBetweenReadsInMillis" samples/sample.properties > samples/temp.properties
           echo "idleTimeBetweenReadsInMillis = 250" >> samples/temp.properties
           mv samples/temp.properties samples/sample.properties
@@ -247,11 +248,8 @@ jobs:
         if: always()
         run: |
           aws kinesis wait stream-exists --stream-name ${{ env.STREAM_NAME }} || true
+          aws kinesis delete-stream --stream-name ${{ env.STREAM_NAME }}
           
-          for i in {1..5}; do
-            aws kinesis delete-stream --stream-name ${{ env.STREAM_NAME }} && break ||
-            echo "Retrying Kinesis deletion in 10s" && sleep 10
-          done
           for i in {1..5}; do
             aws dynamodb delete-table --table-name ${{ env.APP_NAME }} && break ||
             echo "Retrying DynamoDB Table deletion in 10s" && sleep 10
