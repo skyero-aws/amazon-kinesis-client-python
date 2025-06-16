@@ -106,7 +106,7 @@ jobs:
 
       - name: Manipulate sample.properties file
         run: |
-          if [[ "${{matrix.os }}" == "macOS-latest" ]]; then
+          if [[ "${{ matrix.os }}" == "macOS-latest" ]]; then
             sed -i "" "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
             sed -i "" "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
             sed -i "" "s/initialPositionInStream = .*/initialPositionInStream = TRIM_HORIZON/g" samples/sample.properties
