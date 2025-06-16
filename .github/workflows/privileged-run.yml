@@ -99,26 +99,17 @@ jobs:
         run: |
           STREAM_NAME="kclpysample-${{ github.run_id }}-${{ matrix.os }}-py${{ matrix.python-version }}-jdk${{ matrix.jdk-version }}"
           APP_NAME="PythonKCLSample-${{ github.run_id }}-${{ matrix.os }}-py${{ matrix.python-version }}-jdk${{ matrix.jdk-version }}"
-          echo "Using stream name: $STREAM_NAME"
-          echo "Using application name: $APP_NAME"
           echo "STREAM_NAME=$STREAM_NAME" >> $GITHUB_ENV
           echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
 
       - name: Manipulate sample.properties file
         run: |
-          if [[ "${{ matrix.os }}" == "macOS-latest" ]]; then
-            sed -i "" "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
-            sed -i "" "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
-            sed -i "" "s/initialPositionInStream = .*/initialPositionInStream = TRIM_HORIZON/g" samples/sample.properties
-            grep -v "idleTimeBetweenReadsInMillis" samples/sample.properties > samples/temp.properties
-            echo "idleTimeBetweenReadsInMillis = 250" >> samples/temp.properties
-            mv samples/temp.properties samples/sample.properties
-          else
-            sed -i "s/kclpysample/${{ env.STREAM_NAME }}/g" samples/sample.properties
-            sed -i "s/PythonKCLSample/${{ env.APP_NAME }}/g" samples/sample.properties
-            sed -i "s/initialPositionInStream = .*/initialPositionInStream = TRIM_HORIZON/g" samples/sample.properties
-            sed -i "/idleTimeBetweenReadsInMillis/c\idleTimeBetweenReadsInMillis = 250" samples/sample.properties
-          fi
+          chmod +x .github/scripts/manipulate_properties.sh
+          .github/scripts/manipulate_properties.sh
+        env:
+          RUNNER_OS: ${{ matrix.os }}
+          STREAM_NAME: ${{ env.STREAM_NAME }}
+          APP_NAME: ${{ env.APP_NAME }}
 
       # Create stream and wait for it to become active
       - name: Create and verify Kinesis stream

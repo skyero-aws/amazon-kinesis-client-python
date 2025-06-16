@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-
 set -o pipefail
 
 KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
