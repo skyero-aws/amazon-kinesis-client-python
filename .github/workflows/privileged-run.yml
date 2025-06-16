@@ -173,9 +173,6 @@ jobs:
           elif [ "$CHECKPOINT_EXISTS" -gt 0 ]; then
             echo "Test passed: Found checkpoints in DynamoDB (KCL is tracking progress)"
             exit 0
-          elif [ "$NEXT_ITERATOR_BEFORE" != "$NEXT_ITERATOR_AFTER" ]; then
-            echo "Test passed: Shard iterator position changed (KCL is reading records)"
-            exit 0
           elif grep -q "Processing record" kcl_output.log; then
             echo "Test passed: Found evidence of record processing in logs"
             exit 0
@@ -232,9 +229,6 @@ jobs:
             exit 0
           elif [ "$CHECKPOINT_EXISTS" -gt 0 ]; then
             echo "Test passed: Found checkpoints in DynamoDB (KCL is tracking progress)"
-            exit 0
-          elif [ "$NEXT_ITERATOR_BEFORE" != "$NEXT_ITERATOR_AFTER" ]; then
-            echo "Test passed: Shard iterator position changed (KCL is reading records)"
             exit 0
           elif grep -q "Processing record" kcl_output.log; then
             echo "Test passed: Found evidence of record processing in logs"
