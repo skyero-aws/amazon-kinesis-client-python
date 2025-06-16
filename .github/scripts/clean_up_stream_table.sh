@@ -2,7 +2,7 @@
 
 aws kinesis delete-stream --stream-name $STREAM_NAME || true
 
-for i in {1..3}; do
+for i in 1 2 3; do
   aws dynamodb delete-table --table-name $APP_NAME && break ||
   echo "Retrying DynamoDB Table deletion in 10s" && sleep 10
 done
