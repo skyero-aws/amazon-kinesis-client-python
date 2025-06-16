@@ -131,7 +131,6 @@ jobs:
         run: |
           sample_kinesis_wordputter.py --stream $STREAM_NAME -w cat -w dog -w bird -w lobster -w octopus
           
-          echo "=== VERIFYING RECORDS IN STREAM ==="
           SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
           INITIAL_RECORDS=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR)
           RECORD_COUNT_BEFORE=$(echo $INITIAL_RECORDS | jq '.Records | length')
@@ -143,64 +142,26 @@ jobs:
           
           echo "Found $RECORD_COUNT_BEFORE records in stream before KCL start"
 
-      # Run KCL application for 90 seconds, 'exit success' if timeout is reached (exit 124), 'exit failure' otherwise
       - name: Start KCL application (windows or ubuntu)
         if: matrix.os  != 'macOS-latest'
         run: |
           set -o pipefail
-          
-          echo "=== STREAM RECORDS ==="
-          SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
-          INITIAL_RECORDS=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR)
-          
-          echo "=== STARTING KCL APPLICATION ==="
           KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
           timeout 60 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
-          
-          echo "=== CHECKING DDB FOR RECORD CONSUMPTION ==="
-          LEASE_EXISTS=$(aws dynamodb scan --table-name ${{ env.APP_NAME }} --select "COUNT" --query "Count" --output text || echo "0")
-          CHECKPOINT_EXISTS=$(aws dynamodb scan --table-name ${{ env.APP_NAME }} --select "COUNT" --filter-expression "attribute_exists(checkpoint)" --query "Count" --output text || echo "0")
-          
-          echo "=== CHECKING FOR SHARD ITERATOR POSITION CHANGES ==="
-          SHARD_ITERATOR_AFTER=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
-          RECORDS_AFTER=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR_AFTER --limit 10)
-          
-          if [ "$LEASE_EXISTS" -gt 0 ]; then
-            echo "Test passed: Found leases in DynamoDB (KCL is running)"
-            exit 0
-          elif [ "$CHECKPOINT_EXISTS" -gt 0 ]; then
-            echo "Test passed: Found checkpoints in DynamoDB (KCL is tracking progress)"
-            exit 0
-          elif grep -q "Processing record" kcl_output.log; then
-            echo "Test passed: Found evidence of record processing in logs"
-            exit 0
-          else
-            echo "Test failed: No evidence of KCL processing after timeout"
-            exit 1
-          fi
 
-      # Run KCL application for 90 seconds, 'exit success' if timeout is reached (exit 124), 'exit failure' otherwise
       - name: Start KCL application (macOS)
         if: matrix.os  == 'macOS-latest'
         run: |
           set -o pipefail
           brew install coreutils
-          
-          echo "=== STREAM RECORDS ==="
-          SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
-          INITIAL_RECORDS=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR)
-          
-          echo "=== STARTING KCL APPLICATION ==="
           KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
           gtimeout 60 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
 
+      - name: Verify KCL Functionality
+        run: |
           echo "=== CHECKING DDB FOR RECORD CONSUMPTION ==="
           LEASE_EXISTS=$(aws dynamodb scan --table-name ${{ env.APP_NAME }} --select "COUNT" --query "Count" --output text || echo "0")
           CHECKPOINT_EXISTS=$(aws dynamodb scan --table-name ${{ env.APP_NAME }} --select "COUNT" --filter-expression "attribute_exists(checkpoint)" --query "Count" --output text || echo "0")
-          
-          echo "=== CHECKING FOR SHARD ITERATOR POSITION CHANGES ==="
-          SHARD_ITERATOR_AFTER=$(aws kinesis get-shard-iterator --stream-name ${{ env.STREAM_NAME }} --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
-          RECORDS_AFTER=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR_AFTER --limit 10)
           
           if [ "$LEASE_EXISTS" -gt 0 ]; then
             echo "Test passed: Found leases in DynamoDB (KCL is running)"
@@ -219,7 +180,6 @@ jobs:
       - name: Clean up Kinesis Stream and DynamoDB table
         if: always()
         run: |
-          aws kinesis wait stream-exists --stream-name ${{ env.STREAM_NAME }} || true
           aws kinesis delete-stream --stream-name ${{ env.STREAM_NAME }}
           
           for i in {1..3}; do
