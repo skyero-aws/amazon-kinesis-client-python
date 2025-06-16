@@ -6,7 +6,7 @@ KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --prop
 
 if [[ "$RUNNER_OS" == "macOS" ]]; then
   brew install coreutils
-  gtimeout 60 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
+  gtimeout 5 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
 else
-  timeout 60 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
+  timeout 5 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
 fi
