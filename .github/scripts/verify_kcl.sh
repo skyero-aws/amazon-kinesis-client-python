@@ -10,7 +10,17 @@ echo "Print checkpoint values"
 aws dynamodb scan --table-name $APP_NAME --projection-expression "leaseKey,checkpoint" --output json
 
 echo "Print KCL startup logs"
-cat /tmp/kcl_startup.log
+cat /tmp/kcl_startup.log || echo "KCL startup log file not found or empty"
+
+echo "Checking Python script path and permissions"
+ls -la samples/sample_kclpy_app.py || echo "Python script not found"
+
+echo "Checking executableName in properties file"
+grep "executableName" samples/sample.properties
+
+echo "Checking Python interpreter"
+which python
+python --version
 
 if [ "$LEASE_EXISTS" -gt 0 ] && [ "$CHECKPOINT_EXISTS" -gt 0 ]; then
   echo "Test passed: Found both leases and checkpoints in DDB (KCL is fully functional)"

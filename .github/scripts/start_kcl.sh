@@ -3,6 +3,11 @@ set -e
 set -o pipefail
 
 chmod +x samples/sample.properties
+chmod +x samples/sample_kclpy_app.py
+
+echo "checking file permissions: "
+ls -la samples/sample.properties
+ls -la samples/sample_kclpy_app.py
 
 # Get records from stream to verify they exist before continuing
 SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name $STREAM_NAME --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
@@ -27,4 +32,4 @@ else
 fi
 
 echo "---------ERROR LOGS HERE-------"
-grep -i error kcl_output.log
+grep -i error kcl_output.log || echo "No errors found in logs"
