@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
-
+# Manipulate sample.properties file that the KCL application pulls properties from (ex: streamName, applicationName)
+# Depending on the OS, different properties need to be changed
 if [[ "$RUNNER_OS" == "macOS" ]]; then
   sed -i "" "s/kclpysample/$STREAM_NAME/g" samples/sample.properties
   sed -i "" "s/PythonKCLSample/$APP_NAME/g" samples/sample.properties
@@ -15,7 +16,8 @@ elif [[ "$RUNNER_OS" == "Windows" ]]; then
   sed -i "s/kclpysample/$STREAM_NAME/g" samples/sample.properties
   sed -i "s/PythonKCLSample/$APP_NAME/g" samples/sample.properties
   sed -i "/idleTimeBetweenReadsInMillis/c\idleTimeBetweenReadsInMillis = 250" samples/sample.properties
-  sed -i 's/executableName = sample_kclpy_app.py/executableName = python sample_kclpy_app.py/' samples/sample.properties
+  SCRIPT_PATH=$(cygpath -w "$(pwd)/samples/sample_kclpy_app.py")
+  sed -i "s|executableName = sample_kclpy_app.py|executableName = python $SCRIPT_PATH|" samples/sample.properties
 else
   echo "Unknown OS: $RUNNER_OS"
   exit 1
