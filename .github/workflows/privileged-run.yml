@@ -12,9 +12,9 @@ on:
     types: [opened, synchronize, reopened, labeled, unlabeled]
 
 jobs:
-  # Evaluates if the workflow should run. If the workflow is triggered by a push OR
-  # is triggered by a pull request without the 'skip-sample-tests' label, the workflow should run.
-  # Otherwise, the workflow will be skipped
+  # Evaluates if the sample tests should run. If the workflow is triggered by a push OR
+  # is triggered by a pull request without the 'skip-sample-tests' label, the sample tests should run.
+  # Otherwise, the sample tests will be skipped
   check-if-should-run:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request_target' && !contains(github.event.pull_request.labels.*.name, 'skip-sample-tests')) }}
@@ -35,6 +35,7 @@ jobs:
       - run: echo "Fork PR approved by a team member."
 
   # Sample run tests of the KCL
+  # Runs only if (check-if-should-run allows AND (the PR is not from a fork OR it has been approved to run))
   sample-run:
     needs: [ check-if-should-run, wait-for-approval ]
     permissions:
@@ -60,7 +61,7 @@ jobs:
         with:
           ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.ref }}
 
-      # Configure AWS Credentials. Role session name is unique to avoid OIDC errors when running heavy tests
+      # Configure AWS Credentials. Role session name is unique to avoid OIDC errors when running multiple tests concurrently
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -88,6 +89,7 @@ jobs:
         run: |
           python -m pytest
 
+      # Download .jar files required to run KCL app
       - name: Install .jar files
         run: |
           python setup.py download_jars
@@ -95,6 +97,7 @@ jobs:
         env:
           KCL_MVN_REPO_SEARCH_URL: https://repo1.maven.org/maven2/
 
+      # Create unique identifiers for the stream name and application name
       - name: Set up unique identifiers
         run: |
           STREAM_NAME="kclpysample-${{ github.run_id }}-${{ matrix.os }}-py${{ matrix.python-version }}-jdk${{ matrix.jdk-version }}"
@@ -102,6 +105,7 @@ jobs:
           echo "STREAM_NAME=$STREAM_NAME" >> $GITHUB_ENV
           echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
 
+      # Manipulate sample.properties file to use unique stream name and application name
       - name: Manipulate sample.properties file
         run: |
           chmod +x .github/scripts/manipulate_properties.sh
@@ -111,8 +115,8 @@ jobs:
           STREAM_NAME: ${{ env.STREAM_NAME }}
           APP_NAME: ${{ env.APP_NAME }}
 
-      # Create stream and wait for it to become active
-      - name: Create and verify Kinesis stream
+      # Create kinesis stream with unique name and wait for it to exist
+      - name: Create and wait Kinesis stream
         run: |
           aws kinesis create-stream --stream-name ${{ env.STREAM_NAME }} --shard-count 1
           aws kinesis wait stream-exists --stream-name ${{ env.STREAM_NAME }}
@@ -125,13 +129,15 @@ jobs:
         env:
           STREAM_NAME: ${{ env.STREAM_NAME }}
 
+      # Run sample KCL application
       - name: Start KCL application
         run: |
           chmod +x .github/scripts/start_kcl.sh
           .github/scripts/start_kcl.sh
         env:
-          RUNNER_OS: ${{ env.matrix.os }}
+          RUNNER_OS: ${{ matrix.os }}
 
+      # Check and verify results of KCL test
       - name: Verify KCL Functionality
         run: |
           chmod +x .github/scripts/verify_kcl.sh
@@ -139,6 +145,7 @@ jobs:
         env:
           APP_NAME: ${{ env.APP_NAME }}
 
+      # Clean up all existing Streams and DDB tables
       - name: Clean up Kinesis Stream and DynamoDB table
         if: always()
         run: |
