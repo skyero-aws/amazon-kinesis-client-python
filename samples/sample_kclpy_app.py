@@ -43,7 +43,6 @@ class RecordProcessor(processor.RecordProcessorBase):
         self.log("initialize called for shard: {}".format(initialize_input.shard_id))
         self._largest_seq = (None, None)
         self._last_checkpoint_time = 0
-        self.log("_last_checkpoint_time initialized to: {}".format(self._last_checkpoint_time))
 
     def checkpoint(self, checkpointer, sequence_number=None, sub_sequence_number=None):
         """
