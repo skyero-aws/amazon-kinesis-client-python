@@ -3,9 +3,6 @@
 # Copyright 2014-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-with open('/tmp/kcl_startup.log', 'w') as f:
-    f.write('Script started\n')
-
 from __future__ import print_function
 
 import sys
@@ -14,6 +11,8 @@ import time
 from amazon_kclpy import kcl
 from amazon_kclpy.v3 import processor
 
+with open('/tmp/kcl_startup.log', 'w') as f:
+    f.write('Script started\n')
 
 class RecordProcessor(processor.RecordProcessorBase):
     """
