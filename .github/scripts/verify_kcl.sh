@@ -12,6 +12,9 @@ aws dynamodb scan --table-name $APP_NAME --projection-expression "leaseKey,check
 echo "Print KCL startup logs"
 cat /tmp/kcl_startup.log || echo "KCL startup log file not found or empty"
 
+echo "Print KCL debug logs"
+cat /tmp/kcl_debug.log || echo "KCL debug log file not found or empty"
+
 echo "Checking Python script path and permissions"
 ls -la samples/sample_kclpy_app.py || echo "Python script not found"
 

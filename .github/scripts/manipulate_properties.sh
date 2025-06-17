@@ -20,8 +20,6 @@ elif [[ "$RUNNER_OS" == "Windows" ]]; then
   sed -i "s/PythonKCLSample/$APP_NAME/g" samples/sample.properties
   sed -i 's/us-east-5/us-east-1/g' samples/sample.properties
   sed -i "/idleTimeBetweenReadsInMillis/c\idleTimeBetweenReadsInMillis = 250" samples/sample.properties
-  SCRIPT_PATH=$(cygpath -w "$(pwd)/samples/sample_kclpy_app.py")
-  sed -i "s|executableName = sample_kclpy_app.py|executableName = python $SCRIPT_PATH|" samples/sample.properties
 else
   echo "Unknown OS: $RUNNER_OS"
   exit 1

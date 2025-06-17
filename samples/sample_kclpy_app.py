@@ -43,6 +43,7 @@ class RecordProcessor(processor.RecordProcessorBase):
         :param amazon_kclpy.messages.InitializeInput initialize_input: Information about the lease that this record
             processor has been assigned.
         """
+        self.log("initialize called for shard: {}".format(initialize_input.shard_id))
         self._largest_seq = (None, None)
         self._last_checkpoint_time = time.time()
 
@@ -119,6 +120,8 @@ class RecordProcessor(processor.RecordProcessorBase):
             records.
         """
         self.log("process_records called with {} records".format(len(process_records_input.records)))
+        if len(process_records_input.records) == 0:
+                self.log("Received empty records list")
         try:
             for record in process_records_input.records:
                 data = record.binary_data
