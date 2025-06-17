@@ -136,6 +136,7 @@ jobs:
           .github/scripts/start_kcl.sh
         env:
           RUNNER_OS: ${{ matrix.os }}
+          STREAM_NAME: ${{ env.STREAM_NAME }}
 
       # Check and verify results of KCL test
       - name: Verify KCL Functionality

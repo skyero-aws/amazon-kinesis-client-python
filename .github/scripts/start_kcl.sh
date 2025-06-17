@@ -2,6 +2,13 @@
 set -e
 set -o pipefail
 
+# Get records from stream to verify they exist before continuing
+SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name $STREAM_NAME --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
+INITIAL_RECORDS=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR)
+RECORD_COUNT_BEFORE=$(echo $INITIAL_RECORDS | jq '.Records | length')
+
+echo "Found $RECORD_COUNT_BEFORE records in stream before KCL start"
+
 if [[ "$RUNNER_OS" == "macOS" ]]; then
   brew install coreutils
   KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
