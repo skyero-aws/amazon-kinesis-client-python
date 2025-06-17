@@ -56,6 +56,7 @@ class RecordProcessor(processor.RecordProcessorBase):
         :param str or None sequence_number: the sequence number to checkpoint at.
         :param int or None sub_sequence_number: the sub sequence number to checkpoint at.
         """
+        self.log("Attempting to checkpoint at sequence: {}, sub-sequence: {}".format(sequence_number, sub_sequence_number))
         for n in range(0, self._CHECKPOINT_RETRIES):
             try:
                 checkpointer.checkpoint(sequence_number, sub_sequence_number)
@@ -121,7 +122,7 @@ class RecordProcessor(processor.RecordProcessorBase):
         """
         self.log("process_records called with {} records".format(len(process_records_input.records)))
         if len(process_records_input.records) == 0:
-                self.log("Received empty records list")
+            self.log("Received empty records list")
         try:
             for record in process_records_input.records:
                 data = record.binary_data
@@ -136,6 +137,7 @@ class RecordProcessor(processor.RecordProcessorBase):
             # Checkpoints every self._CHECKPOINT_FREQ_SECONDS seconds
             #
             if time.time() - self._last_checkpoint_time > self._CHECKPOINT_FREQ_SECONDS:
+                self.log("Checkpoint interval reached, checkpointing at sequence: {}".format(self._largest_seq[0]))
                 self.checkpoint(process_records_input.checkpointer, str(self._largest_seq[0]), self._largest_seq[1])
                 self._last_checkpoint_time = time.time()
 
