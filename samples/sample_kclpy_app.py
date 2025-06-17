@@ -46,6 +46,7 @@ class RecordProcessor(processor.RecordProcessorBase):
         self.log("initialize called for shard: {}".format(initialize_input.shard_id))
         self._largest_seq = (None, None)
         self._last_checkpoint_time = time.time()
+        self.log("_last_checkpoint_time initialized to: {}".format(self._last_checkpoint_time))
 
     def checkpoint(self, checkpointer, sequence_number=None, sub_sequence_number=None):
         """
@@ -136,7 +137,11 @@ class RecordProcessor(processor.RecordProcessorBase):
             #
             # Checkpoints every self._CHECKPOINT_FREQ_SECONDS seconds
             #
-            if time.time() - self._last_checkpoint_time > self._CHECKPOINT_FREQ_SECONDS:
+            if self._largest_seq != (None, None) and len(process_records_input.records) > 0:
+                self.log("Forcing checkpoint after processing records at sequence: {}".format(self._largest_seq[0]))
+                self.checkpoint(process_records_input.checkpointer, str(self._largest_seq[0]), self._largest_seq[1])
+                self._last_checkpoint_time = time.time()
+            elif time.time() - self._last_checkpoint_time > self._CHECKPOINT_FREQ_SECONDS:
                 self.log("Checkpoint interval reached, checkpointing at sequence: {}".format(self._largest_seq[0]))
                 self.checkpoint(process_records_input.checkpointer, str(self._largest_seq[0]), self._largest_seq[1])
                 self._last_checkpoint_time = time.time()
