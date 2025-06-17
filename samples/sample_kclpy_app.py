@@ -134,11 +134,7 @@ class RecordProcessor(processor.RecordProcessorBase):
             #
             # Checkpoints every self._CHECKPOINT_FREQ_SECONDS seconds
             #
-            if self._largest_seq != (None, None) and len(process_records_input.records) > 0:
-                self.log("Forcing checkpoint after processing records at sequence: {}".format(self._largest_seq[0]))
-                self.checkpoint(process_records_input.checkpointer, str(self._largest_seq[0]), self._largest_seq[1])
-                self._last_checkpoint_time = time.time()
-            elif time.time() - self._last_checkpoint_time > self._CHECKPOINT_FREQ_SECONDS:
+            if time.time() - self._last_checkpoint_time > self._CHECKPOINT_FREQ_SECONDS:
                 self.log("Checkpoint interval reached, checkpointing at sequence: {}".format(self._largest_seq[0]))
                 self.checkpoint(process_records_input.checkpointer, str(self._largest_seq[0]), self._largest_seq[1])
                 self._last_checkpoint_time = time.time()
