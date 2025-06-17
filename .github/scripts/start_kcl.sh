@@ -23,3 +23,6 @@ else
   echo "Unknown OS: $RUNNER_OS"
   exit 1
 fi
+
+echo "---------ERROR LOGS HERE-------"
+grep -i error kcl_output.log

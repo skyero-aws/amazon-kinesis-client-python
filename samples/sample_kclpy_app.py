@@ -24,12 +24,14 @@ class RecordProcessor(processor.RecordProcessorBase):
     def __init__(self):
         self._SLEEP_SECONDS = 5
         self._CHECKPOINT_RETRIES = 5
-        self._CHECKPOINT_FREQ_SECONDS = 60
+        self._CHECKPOINT_FREQ_SECONDS = 6
         self._largest_seq = (None, None)
         self._largest_sub_seq = None
         self._last_checkpoint_time = None
 
     def log(self, message):
+        with open('/tmp/kcl_debug.log', 'a') as f:
+            f.write(message + '\n')
         sys.stderr.write(message)
 
     def initialize(self, initialize_input):
@@ -114,6 +116,7 @@ class RecordProcessor(processor.RecordProcessorBase):
         :param amazon_kclpy.messages.ProcessRecordsInput process_records_input: the records, and metadata about the
             records.
         """
+        self.log("process_records called with {} records".format(len(process_records_input.records)))
         try:
             for record in process_records_input.records:
                 data = record.binary_data
