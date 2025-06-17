@@ -2,6 +2,8 @@
 set -e
 set -o pipefail
 
+chmod +x samples/sample.properties
+
 # Get records from stream to verify they exist before continuing
 SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name $STREAM_NAME --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
 INITIAL_RECORDS=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR)

@@ -6,6 +6,12 @@ CHECKPOINT_EXISTS=$(aws dynamodb scan --table-name $APP_NAME --select "COUNT" --
 
 echo "Found $LEASE_EXISTS leases and $CHECKPOINT_EXISTS checkpoints in DynamoDB"
 
+echo "Print checkpoint values"
+aws dynamodb scan --table-name $APP_NAME --projection-expression "leaseKey,checkpoint" --output json
+
+echo "Print KCL startup logs"
+cat /tmp/kcl_startup.log
+
 if [ "$LEASE_EXISTS" -gt 0 ] && [ "$CHECKPOINT_EXISTS" -gt 0 ]; then
   echo "Test passed: Found both leases and checkpoints in DDB (KCL is fully functional)"
   exit 0

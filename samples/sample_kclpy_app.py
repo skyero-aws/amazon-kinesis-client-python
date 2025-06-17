@@ -3,6 +3,9 @@
 # Copyright 2014-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+with open('/tmp/kcl_startup.log', 'w') as f:
+    f.write('Script started\n')
+
 from __future__ import print_function
 
 import sys
