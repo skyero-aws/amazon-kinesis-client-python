@@ -10,15 +10,13 @@ ls -la samples/sample.properties
 ls -la samples/sample_kclpy_app.py
 
 # Reset the checkpoint in DynamoDB to force starting from TRIM_HORIZON
-echo "Resetting checkpoints in DynamoDB table..."
-aws dynamodb scan --table-name $APP_NAME --attributes-to-get "leaseKey" --query "Items[*].leaseKey.S" --output text | while read -r lease_key; do
-  aws dynamodb update-item \
-    --table-name $APP_NAME \
-    --key "{\"leaseKey\": {\"S\": \"$lease_key\"}}" \
-    --update-expression "SET checkpoint = :val" \
-    --expression-attribute-values '{":val": {"S": "TRIM_HORIZON"}}' \
-    --return-values NONE
-done
+echo "Resetting checkpoint for shardId-000000000000..."
+aws dynamodb update-item \
+  --table-name $APP_NAME \
+  --key '{"leaseKey": {"S": "shardId-000000000000"}}' \
+  --update-expression "SET checkpoint = :val" \
+  --expression-attribute-values '{":val": {"S": "TRIM_HORIZON"}}' \
+  --return-values NONE
 
 # Get records from stream to verify they exist before continuing
 SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name $STREAM_NAME --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
@@ -53,10 +51,10 @@ fi
 if [[ "$RUNNER_OS" == "macOS" ]]; then
   brew install coreutils
   KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-  gtimeout 300 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
+  gtimeout 240 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
 elif [[ "$RUNNER_OS" == "Linux" ]]; then
   KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-  timeout 300 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
+  timeout 240 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
 elif [[ "$RUNNER_OS" == "Windows" ]]; then
   KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
   timeout 300 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
