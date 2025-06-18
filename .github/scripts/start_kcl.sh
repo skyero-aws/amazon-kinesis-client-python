@@ -24,6 +24,7 @@ elif [[ "$RUNNER_OS" == "Linux" ]]; then
   KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
   timeout 720 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
 elif [[ "$RUNNER_OS" == "Windows" ]]; then
+  sed -i 's/def log(self, message):.*/def log(self, message):\n        sys.stderr.write(message + "\\n")/' samples/sample_kclpy_app.py
   KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
   timeout 720 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
 else
