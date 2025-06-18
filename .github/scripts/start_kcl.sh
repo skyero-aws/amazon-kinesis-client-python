@@ -25,13 +25,12 @@ RECORD_COUNT_BEFORE=$(echo $INITIAL_RECORDS | jq '.Records | length')
 
 echo "Found $RECORD_COUNT_BEFORE records in stream before KCL start"
 
-# Manipulate logging method for Windows
-if [[ "$RUNNER_OS" == "Windows" ]]; then
-  cat > fix_log.py << 'EOF'
+# Manipulate logging method
+cat > fix_log.py << 'EOF'
 with open('samples/sample_kclpy_app.py', 'r') as f:
     content = f.read()
 
-# Replace the log method with a simple version
+# Replace the log method with a simple version that writes to stderr
 new_log = '''    def log(self, message):
         sys.stderr.write(message + "\\n")'''
 
@@ -45,8 +44,7 @@ if start >= 0 and end >= 0:
         f.write(fixed_content)
 EOF
 
-  python fix_log.py
-fi
+python fix_log.py
 
 if [[ "$RUNNER_OS" == "macOS" ]]; then
   brew install coreutils
