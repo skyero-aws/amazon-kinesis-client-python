@@ -13,11 +13,11 @@ echo "Print KCL debug logs"
 cat /tmp/kcl_debug.log || echo "KCL debug log file not found or empty"
 
 if [ "$LEASE_EXISTS" -gt 0 ] && [ "$CHECKPOINT_EXISTS" -gt 0 ]; then
-  echo "Test passed: Found both leases and checkpoints in DDB (KCL is fully functional)"
+  echo "Test passed: Found both leases and non-TRIM_HORIZON checkpoints in DDB (KCL is fully functional)"
   exit 0
 else
   echo "Test failed: KCL not fully functional"
   echo "Lease(s) found: $LEASE_EXISTS"
-  echo "TRIM_HORIZON checkpoint found: $CHECKPOINT_EXISTS"
+  echo "non-TRIM_HORIZON checkpoint(s) found: $CHECKPOINT_EXISTS"
   exit 1
 fi
