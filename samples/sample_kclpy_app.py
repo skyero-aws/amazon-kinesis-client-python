@@ -118,8 +118,6 @@ class RecordProcessor(processor.RecordProcessorBase):
             records.
         """
         self.log("process_records called with {} records".format(len(process_records_input.records)))
-        if len(process_records_input.records) == 0:
-            self.log("Received empty records list")
         try:
             for record in process_records_input.records:
                 data = record.binary_data
@@ -134,7 +132,6 @@ class RecordProcessor(processor.RecordProcessorBase):
             # Checkpoints every self._CHECKPOINT_FREQ_SECONDS seconds
             #
             if time.time() - self._last_checkpoint_time > self._CHECKPOINT_FREQ_SECONDS:
-                self.log("Checkpoint interval reached, checkpointing at sequence: {}".format(self._largest_seq[0]))
                 self.checkpoint(process_records_input.checkpointer, str(self._largest_seq[0]), self._largest_seq[1])
                 self._last_checkpoint_time = time.time()
 
