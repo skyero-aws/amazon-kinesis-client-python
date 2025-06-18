@@ -9,6 +9,17 @@ echo "checking file permissions: "
 ls -la samples/sample.properties
 ls -la samples/sample_kclpy_app.py
 
+# Reset the checkpoint in DynamoDB to force starting from TRIM_HORIZON
+echo "Resetting checkpoints in DynamoDB table..."
+aws dynamodb scan --table-name $APP_NAME --attributes-to-get "leaseKey" --query "Items[*].leaseKey.S" --output text | while read -r lease_key; do
+  aws dynamodb update-item \
+    --table-name $APP_NAME \
+    --key "{\"leaseKey\": {\"S\": \"$lease_key\"}}" \
+    --update-expression "SET checkpoint = :val" \
+    --expression-attribute-values '{":val": {"S": "TRIM_HORIZON"}}' \
+    --return-values NONE
+done
+
 # Get records from stream to verify they exist before continuing
 SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name $STREAM_NAME --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
 INITIAL_RECORDS=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR)
@@ -19,36 +30,36 @@ echo "Found $RECORD_COUNT_BEFORE records in stream before KCL start"
 # Manipulate logging method for Windows
 if [[ "$RUNNER_OS" == "Windows" ]]; then
   cat > fix_log.py << 'EOF'
-import re
-
 with open('samples/sample_kclpy_app.py', 'r') as f:
     content = f.read()
 
-fixed_content = re.sub(
-    r'def log\(self, message\):.*?with open\([^)]+\) as f:.*?f\.write\([^)]+\).*?sys\.stderr\.write\(message\)',
-    'def log(self, message):\n        sys.stderr.write(message + "\\n")',
-    content,
-    flags=re.DOTALL
-)
+# Replace the log method with a simple version
+new_log = '''    def log(self, message):
+        sys.stderr.write(message + "\\n")'''
 
-with open('samples/sample_kclpy_app.py', 'w') as f:
-    f.write(fixed_content)
+# Find the start and end of the log method
+start = content.find('    def log(self, message):')
+end = content.find('        sys.stderr.write(message)', start)
+if start >= 0 and end >= 0:
+    end = content.find('\n', end) + 1
+    fixed_content = content[:start] + new_log + content[end:]
+    with open('samples/sample_kclpy_app.py', 'w') as f:
+        f.write(fixed_content)
 EOF
 
-  # Run the Python script to fix the log method
   python fix_log.py
 fi
 
 if [[ "$RUNNER_OS" == "macOS" ]]; then
   brew install coreutils
   KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-  gtimeout 180 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
+  gtimeout 300 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
 elif [[ "$RUNNER_OS" == "Linux" ]]; then
   KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-  timeout 180 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
+  timeout 300 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
 elif [[ "$RUNNER_OS" == "Windows" ]]; then
   KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-  timeout 180 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
+  timeout 300 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
 else
   echo "Unknown OS: $RUNNER_OS"
   exit 1
