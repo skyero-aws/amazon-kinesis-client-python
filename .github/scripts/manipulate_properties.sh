@@ -1,15 +1,37 @@
 #!/bin/bash
 set -e
 
-cat > fix_time.py << 'EOF'
+cat > fix_checkpoint.py << 'EOF'
+#!/usr/bin/env python
+import os
+
+# Read the file
+with open('samples/sample_kclpy_app.py', 'r') as f:
+    lines = f.readlines()
+
+# Find and replace the line
+for i, line in enumerate(lines):
+    if 'self._last_checkpoint_time = time.time()' in line:
+        lines[i] = '        self._last_checkpoint_time = 0\n'
+        break
+
+# Write the file back
+with open('samples/sample_kclpy_app.py', 'w') as f:
+    f.writelines(lines)
+
+# Verify the change
 with open('samples/sample_kclpy_app.py', 'r') as f:
     content = f.read()
-content = content.replace('self._last_checkpoint_time = time.time()', 'self._last_checkpoint_time = 0', 1)
-with open('samples/sample_kclpy_app.py', 'w') as f:
-    f.write(content)
+    if 'self._last_checkpoint_time = 0' in content:
+        print("Successfully updated checkpoint time to 0")
+    else:
+        print("Failed to update checkpoint time")
+        exit(1)
 EOF
 
-python fix_time.py
+# Make the script executable and run it
+chmod +x fix_checkpoint.py
+python fix_checkpoint.py
 
 # Manipulate sample.properties file that the KCL application pulls properties from (ex: streamName, applicationName)
 # Depending on the OS, different properties need to be changed
@@ -45,7 +67,7 @@ else
   exit 1
 fi
 
-#echo "Checking if _last_checkpoint_time was set to 0:"
+echo "Checking if _last_checkpoint_time was set to 0:"
 grep "_last_checkpoint_time =" samples/sample_kclpy_app.py
 
 cat samples/sample.properties
