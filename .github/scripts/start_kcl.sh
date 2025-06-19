@@ -5,20 +5,19 @@ set -o pipefail
 chmod +x samples/sample.properties
 chmod +x samples/sample_kclpy_app.py
 
-# Reset the checkpoint in DynamoDB to force starting from TRIM_HORIZON
+# Reset the values of checkpoint, leaseCounter, ownerSwitchesSinceCheckpoint, leaseOwner, and parentShardId in DynamoDB table
 echo "Resetting checkpoint for shardId-000000000000"
 aws dynamodb update-item \
   --table-name $APP_NAME \
   --key '{"leaseKey": {"S": "shardId-000000000000"}}' \
-  --update-expression "SET checkpoint = :val" \
-  --expression-attribute-values '{":val": {"S": "TRIM_HORIZON"}}' \
-  --return-values NONE
-
-aws dynamodb update-item \
-  --table-name $APP_NAME \
-  --key '{"leaseKey": {"S": "shardId-000000000000"}}' \
-  --update-expression "SET leaseCounter = :counter" \
-  --expression-attribute-values '{":counter": {"N": "0"}}' \
+  --update-expression "SET checkpoint = :checkpoint, leaseCounter = :counter, ownerSwitchesSinceCheckpoint = :switches, leaseOwner = :owner, parentShardId = :parent" \
+  --expression-attribute-values '{
+    ":checkpoint": {"S": "TRIM_HORIZON"},
+    ":counter": {"N": "0"},
+    ":switches": {"N": "0"},
+    ":owner": {"NULL": true},
+    ":parent": {"NULL": true}
+  }' \
   --return-values NONE
 
 # Get records from stream to verify they exist before continuing
