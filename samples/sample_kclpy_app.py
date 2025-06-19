@@ -11,6 +11,7 @@ import time
 from amazon_kclpy import kcl
 from amazon_kclpy.v3 import processor
 
+
 class RecordProcessor(processor.RecordProcessorBase):
     """
     A RecordProcessor processes data from a shard in a stream. Its methods will be called with this pattern:
@@ -29,8 +30,7 @@ class RecordProcessor(processor.RecordProcessorBase):
         self._last_checkpoint_time = None
 
     def log(self, message):
-        sys.stderr.write(message + "\n")
-        sys.stderr.flush()
+        sys.stderr.write(message)
 
     def initialize(self, initialize_input):
         """
@@ -39,9 +39,8 @@ class RecordProcessor(processor.RecordProcessorBase):
         :param amazon_kclpy.messages.InitializeInput initialize_input: Information about the lease that this record
             processor has been assigned.
         """
-        self.log("initialize called for shard: {}".format(initialize_input.shard_id))
         self._largest_seq = (None, None)
-        self._last_checkpoint_time = 0
+        self._last_checkpoint_time = time.time()
 
     def checkpoint(self, checkpointer, sequence_number=None, sub_sequence_number=None):
         """
