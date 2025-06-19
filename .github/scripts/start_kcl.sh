@@ -6,13 +6,13 @@ chmod +x samples/sample.properties
 chmod +x samples/sample_kclpy_app.py
 
 # Reset the checkpoint in DynamoDB to force starting from TRIM_HORIZON
-echo "Resetting checkpoint for shardId-000000000000"
-aws dynamodb update-item \
-  --table-name $APP_NAME \
-  --key '{"leaseKey": {"S": "shardId-000000000000"}}' \
-  --update-expression "SET checkpoint = :val" \
-  --expression-attribute-values '{":val": {"S": "TRIM_HORIZON"}}' \
-  --return-values NONE
+#echo "Resetting checkpoint for shardId-000000000000"
+#aws dynamodb update-item \
+#  --table-name $APP_NAME \
+#  --key '{"leaseKey": {"S": "shardId-000000000000"}}' \
+#  --update-expression "SET checkpoint = :val" \
+#  --expression-attribute-values '{":val": {"S": "TRIM_HORIZON"}}' \
+#  --return-values NONE
 
 # Get records from stream to verify they exist before continuing
 SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name $STREAM_NAME --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
