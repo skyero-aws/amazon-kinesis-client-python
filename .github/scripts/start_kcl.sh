@@ -15,8 +15,7 @@ aws dynamodb update-item \
     ":checkpoint": {"S": "TRIM_HORIZON"},
     ":counter": {"N": "0"},
     ":switches": {"N": "0"},
-    ":owner": {"NULL": true},
-    ":parent": {"NULL": true}
+    ":owner": {"S": "AVAILABLE"}
   }' \
   --return-values NONE
 
