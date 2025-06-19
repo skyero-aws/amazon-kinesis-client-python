@@ -5,10 +5,6 @@ set -o pipefail
 chmod +x samples/sample.properties
 chmod +x samples/sample_kclpy_app.py
 
-echo "checking file permissions: "
-ls -la samples/sample.properties
-ls -la samples/sample_kclpy_app.py
-
 # Reset the checkpoint in DynamoDB to force starting from TRIM_HORIZON
 echo "Resetting checkpoint for shardId-000000000000"
 aws dynamodb update-item \
@@ -28,13 +24,13 @@ echo "Found $RECORD_COUNT_BEFORE records in stream before KCL start"
 if [[ "$RUNNER_OS" == "macOS" ]]; then
   brew install coreutils
   KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-  gtimeout 300 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
+  gtimeout 240 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
 elif [[ "$RUNNER_OS" == "Linux" ]]; then
   KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-  timeout 300 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
+  timeout 240 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
 elif [[ "$RUNNER_OS" == "Windows" ]]; then
   KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-  timeout 300 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
+  timeout 240 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
 else
   echo "Unknown OS: $RUNNER_OS"
   exit 1
