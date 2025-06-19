@@ -1,6 +1,16 @@
 #!/bin/bash
 set -e
 
+cat > fix_time.py << 'EOF'
+with open('samples/sample_kclpy_app.py', 'r') as f:
+    content = f.read()
+content = content.replace('self._last_checkpoint_time = time.time()', 'self._last_checkpoint_time = 0', 1)
+with open('samples/sample_kclpy_app.py', 'w') as f:
+    f.write(content)
+EOF
+
+python fix_time.py
+
 # Manipulate sample.properties file that the KCL application pulls properties from (ex: streamName, applicationName)
 # Depending on the OS, different properties need to be changed
 if [[ "$RUNNER_OS" == "macOS" ]]; then
