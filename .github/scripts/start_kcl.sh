@@ -14,6 +14,13 @@ aws dynamodb update-item \
   --expression-attribute-values '{":val": {"S": "TRIM_HORIZON"}}' \
   --return-values NONE
 
+aws dynamodb update-item \
+  --table-name $APP_NAME \
+  --key '{"leaseKey": {"S": "shardId-000000000000"}}' \
+  --update-expression "SET leaseCounter = :counter" \
+  --expression-attribute-values '{":counter": {"N": "0"}}' \
+  --return-values NONE
+
 # Get records from stream to verify they exist before continuing
 SHARD_ITERATOR=$(aws kinesis get-shard-iterator --stream-name $STREAM_NAME --shard-id shardId-000000000000 --shard-iterator-type TRIM_HORIZON --query 'ShardIterator' --output text)
 INITIAL_RECORDS=$(aws kinesis get-records --shard-iterator $SHARD_ITERATOR)
