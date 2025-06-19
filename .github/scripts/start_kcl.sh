@@ -10,7 +10,7 @@ echo "Resetting checkpoint for shardId-000000000000"
 aws dynamodb update-item \
   --table-name $APP_NAME \
   --key '{"leaseKey": {"S": "shardId-000000000000"}}' \
-  --update-expression "SET checkpoint = :checkpoint, leaseCounter = :counter, ownerSwitchesSinceCheckpoint = :switches, leaseOwner = :owner, parentShardId = :parent" \
+  --update-expression "SET checkpoint = :checkpoint, leaseCounter = :counter, ownerSwitchesSinceCheckpoint = :switches, leaseOwner = :owner" \
   --expression-attribute-values '{
     ":checkpoint": {"S": "TRIM_HORIZON"},
     ":counter": {"N": "0"},
