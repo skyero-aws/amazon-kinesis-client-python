@@ -10,7 +10,7 @@ ls -la samples/sample.properties
 ls -la samples/sample_kclpy_app.py
 
 # Reset the checkpoint in DynamoDB to force starting from TRIM_HORIZON
-echo "Resetting checkpoint for shardId-000000000000..."
+echo "Resetting checkpoint for shardId-000000000000"
 aws dynamodb update-item \
   --table-name $APP_NAME \
   --key '{"leaseKey": {"S": "shardId-000000000000"}}' \
@@ -30,9 +30,9 @@ cat > fix_log.py << 'EOF'
 with open('samples/sample_kclpy_app.py', 'r') as f:
     content = f.read()
 
-# Replace the log method with a simple version that writes to stderr
 new_log = '''    def log(self, message):
-        sys.stderr.write(message + "\\n")'''
+        sys.stderr.write(message + "\\n")
+        sys.stderr.flush()  # Ensure output is flushed immediately'''
 
 # Find the start and end of the log method
 start = content.find('    def log(self, message):')
