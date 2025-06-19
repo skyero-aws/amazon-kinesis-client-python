@@ -11,14 +11,14 @@ if [[ "$RUNNER_OS" == "macOS" ]]; then
   echo "idleTimeBetweenReadsInMillis = 250" >> samples/temp.properties
   mv samples/temp.properties samples/sample.properties
 
-  sed -i '' 's/self._last_checkpoint_time = time.time()/self._last_checkpoint_time = 0/g' samples/sample_kclpy_app.py
+  sed -i "" '/def initialize/,/self._last_checkpoint_time = time.time()/s/self._last_checkpoint_time = time.time()/self._last_checkpoint_time = 0/' samples/sample_kclpy_app.py
 elif [[ "$RUNNER_OS" == "Linux" ]]; then
   sed -i "s/kclpysample/$STREAM_NAME/g" samples/sample.properties
   sed -i "s/PythonKCLSample/$APP_NAME/g" samples/sample.properties
   sed -i 's/us-east-5/us-east-1/g' samples/sample.properties
   sed -i "/idleTimeBetweenReadsInMillis/c\idleTimeBetweenReadsInMillis = 250" samples/sample.properties
 
-  sed -i.bak 's/self._last_checkpoint_time = time.time()/self._last_checkpoint_time = 0/g' samples/sample_kclpy_app.py
+  sed -i '/def initialize/,/self._last_checkpoint_time = time.time()/s/self._last_checkpoint_time = time.time()/self._last_checkpoint_time = 0/' samples/sample_kclpy_app.py
 elif [[ "$RUNNER_OS" == "Windows" ]]; then
   sed -i "s/kclpysample/$STREAM_NAME/g" samples/sample.properties
   sed -i "s/PythonKCLSample/$APP_NAME/g" samples/sample.properties
@@ -29,7 +29,7 @@ elif [[ "$RUNNER_OS" == "Windows" ]]; then
   echo 'python %~dp0\sample_kclpy_app.py %*' >> samples/run_script.bat
   sed -i 's/executableName = sample_kclpy_app.py/executableName = samples\/run_script.bat/' samples/sample.properties
 
-  sed -i.bak 's/self._last_checkpoint_time = time.time()/self._last_checkpoint_time = 0/g' samples/sample_kclpy_app.py
+  sed -i '/def initialize/,/self._last_checkpoint_time = time.time()/s/self._last_checkpoint_time = time.time()/self._last_checkpoint_time = 0/' samples/sample_kclpy_app.py
 else
   echo "Unknown OS: $RUNNER_OS"
   exit 1
