@@ -25,27 +25,6 @@ RECORD_COUNT_BEFORE=$(echo $INITIAL_RECORDS | jq '.Records | length')
 
 echo "Found $RECORD_COUNT_BEFORE records in stream before KCL start"
 
-# Manipulate logging method
-cat > fix_log.py << 'EOF'
-with open('samples/sample_kclpy_app.py', 'r') as f:
-    content = f.read()
-
-new_log = '''    def log(self, message):
-        sys.stderr.write(message + "\\n")
-        sys.stderr.flush()  # Ensure output is flushed immediately'''
-
-# Find the start and end of the log method
-start = content.find('    def log(self, message):')
-end = content.find('        sys.stderr.write(message)', start)
-if start >= 0 and end >= 0:
-    end = content.find('\n', end) + 1
-    fixed_content = content[:start] + new_log + content[end:]
-    with open('samples/sample_kclpy_app.py', 'w') as f:
-        f.write(fixed_content)
-EOF
-
-python fix_log.py
-
 if [[ "$RUNNER_OS" == "macOS" ]]; then
   brew install coreutils
   KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)

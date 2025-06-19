@@ -29,9 +29,8 @@ class RecordProcessor(processor.RecordProcessorBase):
         self._last_checkpoint_time = None
 
     def log(self, message):
-        with open('/tmp/kcl_debug.log', 'a') as f:
-            f.write(message + '\n')
-        sys.stderr.write(message)
+        sys.stderr.write(message + "\n")
+        sys.stderr.flush()
 
     def initialize(self, initialize_input):
         """
