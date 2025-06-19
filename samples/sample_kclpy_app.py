@@ -23,7 +23,7 @@ class RecordProcessor(processor.RecordProcessorBase):
     def __init__(self):
         self._SLEEP_SECONDS = 5
         self._CHECKPOINT_RETRIES = 5
-        self._CHECKPOINT_FREQ_SECONDS = 6
+        self._CHECKPOINT_FREQ_SECONDS = 60
         self._largest_seq = (None, None)
         self._largest_sub_seq = None
         self._last_checkpoint_time = None
@@ -52,7 +52,6 @@ class RecordProcessor(processor.RecordProcessorBase):
         :param str or None sequence_number: the sequence number to checkpoint at.
         :param int or None sub_sequence_number: the sub sequence number to checkpoint at.
         """
-        self.log("Attempting to checkpoint at sequence: {}, sub-sequence: {}".format(sequence_number, sub_sequence_number))
         for n in range(0, self._CHECKPOINT_RETRIES):
             try:
                 checkpointer.checkpoint(sequence_number, sub_sequence_number)
@@ -116,7 +115,6 @@ class RecordProcessor(processor.RecordProcessorBase):
         :param amazon_kclpy.messages.ProcessRecordsInput process_records_input: the records, and metadata about the
             records.
         """
-        self.log("process_records called with {} records".format(len(process_records_input.records)))
         try:
             for record in process_records_input.records:
                 data = record.binary_data

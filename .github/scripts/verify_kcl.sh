@@ -9,9 +9,6 @@ echo "Found $LEASE_EXISTS leases and $CHECKPOINT_EXISTS non-TRIM-HORIZON checkpo
 echo "Print checkpoint values"
 aws dynamodb scan --table-name $APP_NAME --projection-expression "leaseKey,checkpoint" --output json
 
-echo "Print KCL debug logs"
-cat /tmp/kcl_debug.log || echo "KCL debug log file not found or empty"
-
 if [ "$LEASE_EXISTS" -gt 0 ] && [ "$CHECKPOINT_EXISTS" -gt 0 ]; then
   echo "Test passed: Found both leases and non-TRIM_HORIZON checkpoints in DDB (KCL is fully functional)"
   exit 0
