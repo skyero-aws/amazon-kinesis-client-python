@@ -5,7 +5,7 @@ set -o pipefail
 chmod +x samples/sample.properties
 chmod +x samples/sample_kclpy_app.py
 
-# Reset the values of checkpoint, leaseCounter, ownerSwitchesSinceCheckpoint, leaseOwner, and parentShardId in DynamoDB table
+# Reset the values of checkpoint, leaseCounter, ownerSwitchesSinceCheckpoint, and leaseOwner in DynamoDB table
 echo "Resetting checkpoint for shardId-000000000000"
 aws dynamodb update-item \
   --table-name $APP_NAME \
