@@ -3,6 +3,7 @@
 aws kinesis delete-stream --stream-name $STREAM_NAME || true
 
 # Reset the values of checkpoint, leaseCounter, ownerSwitchesSinceCheckpoint, and leaseOwner in DynamoDB table
+echo "Resetting DDB table"
 aws dynamodb update-item \
   --table-name $APP_NAME \
   --key '{"leaseKey": {"S": "shardId-000000000000"}}' \
@@ -12,6 +13,29 @@ aws dynamodb update-item \
     ":counter": {"N": "0"},
     ":switches": {"N": "0"},
     ":owner": {"S": "AVAILABLE"}
+  }' \
+  --return-values NONE
+
+# Reset CoordinatorState table
+echo "Resetting CoordinatorState table"
+aws dynamodb update-item \
+  --table-name "${APP_NAME}-CoordinatorState" \
+  --key '{"lockKey": {"S": "COORDINATOR"}}' \
+  --update-expression "SET leaseCounter = :counter, leaseOwner = :owner" \
+  --expression-attribute-values '{
+    ":counter": {"N": "0"},
+    ":owner": {"S": "AVAILABLE"}
+  }' \
+  --return-values NONE
+
+# Reset WorkerMetricStats table if it exists
+echo "Resetting WorkerMetricStats table"
+aws dynamodb update-item \
+  --table-name "${APP_NAME}-WorkerMetricStats" \
+  --key '{"workerId": {"S": "DEFAULT_WORKER"}}' \
+  --update-expression "SET latestCheckpoint = :checkpoint" \
+  --expression-attribute-values '{
+    ":checkpoint": {"S": "TRIM_HORIZON"}
   }' \
   --return-values NONE
 
