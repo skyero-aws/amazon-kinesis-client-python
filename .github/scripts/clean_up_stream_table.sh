@@ -16,29 +16,6 @@ aws dynamodb update-item \
   }' \
   --return-values NONE
 
-# Reset CoordinatorState table
-echo "Resetting CoordinatorState table"
-aws dynamodb update-item \
-  --table-name "${APP_NAME}-CoordinatorState" \
-  --key '{"lockKey": {"S": "COORDINATOR"}}' \
-  --update-expression "SET leaseCounter = :counter, leaseOwner = :owner" \
-  --expression-attribute-values '{
-    ":counter": {"N": "0"},
-    ":owner": {"S": "AVAILABLE"}
-  }' \
-  --return-values NONE
-
-# Reset WorkerMetricStats table if it exists
-echo "Resetting WorkerMetricStats table"
-aws dynamodb update-item \
-  --table-name "${APP_NAME}-WorkerMetricStats" \
-  --key '{"workerId": {"S": "DEFAULT_WORKER"}}' \
-  --update-expression "SET latestCheckpoint = :checkpoint" \
-  --expression-attribute-values '{
-    ":checkpoint": {"S": "TRIM_HORIZON"}
-  }' \
-  --return-values NONE
-
 # Delete all tables
 #for i in {1..5}; do
 #  aws dynamodb delete-table --table-name $APP_NAME && break ||
