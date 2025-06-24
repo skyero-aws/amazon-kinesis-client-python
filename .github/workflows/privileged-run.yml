@@ -11,6 +11,10 @@ on:
     branches: [ master, sample-improve ]
     types: [opened, synchronize, reopened, labeled, unlabeled]
 
+concurrency:
+  group: privileged-run.yml
+  cancel-in-progress: false
+
 jobs:
   # Evaluates if the sample tests should run. If the workflow is triggered by a push OR
   # is triggered by a pull request without the 'skip-sample-tests' label, the sample tests should run.
