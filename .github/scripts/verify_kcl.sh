@@ -6,7 +6,7 @@ CHECKPOINT_EXISTS=$(aws dynamodb scan --table-name $APP_NAME --select "COUNT" --
 
 echo "Found $LEASE_EXISTS leases and $CHECKPOINT_EXISTS non-TRIM-HORIZON checkpoints in DynamoDB"
 
-echo "Print checkpoint values"
+echo "Printing checkpoint values"
 aws dynamodb scan --table-name $APP_NAME --projection-expression "leaseKey,checkpoint" --output json
 
 if [ "$LEASE_EXISTS" -gt 0 ] && [ "$CHECKPOINT_EXISTS" -gt 0 ]; then
