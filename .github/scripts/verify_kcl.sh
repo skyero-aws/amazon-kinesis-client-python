@@ -4,7 +4,7 @@ set -e
 LEASE_EXISTS=$(aws dynamodb scan --table-name $APP_NAME --select "COUNT" --query "Count" --output text || echo "0")
 CHECKPOINT_EXISTS=$(aws dynamodb scan --table-name $APP_NAME --select "COUNT" --filter-expression "attribute_exists(checkpoint) AND checkpoint <> :trim_horizon" --expression-attribute-values '{":trim_horizon": {"S": "TRIM_HORIZON"}}' --query "Count" --output text || echo "0")
 
-echo "Found $LEASE_EXISTS leases and $CHECKPOINT_EXISTS non-TRIM-HORIZON checkpoints in DynamoDB"
+echo "Found $LEASE_EXISTS leases and $CHECKPOINT_EXISTS non-TRIM-HORIZON checkpoint in DynamoDB"
 
 echo "Printing checkpoint values"
 aws dynamodb scan --table-name $APP_NAME --projection-expression "leaseKey,checkpoint" --output json
