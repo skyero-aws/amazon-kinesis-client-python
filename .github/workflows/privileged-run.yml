@@ -9,7 +9,7 @@ on:
     branches: [ master, sample-improve ]
   pull_request_target:
     branches: [ master, sample-improve ]
-    types: [opened, synchronize, reopened, labeled, unlabeled]
+    types: [opened, synchronize, reopened, unlabeled]
 
 concurrency:
   group: privileged-run.yml
