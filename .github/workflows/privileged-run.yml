@@ -123,8 +123,10 @@ jobs:
       # Create kinesis stream with unique name and wait for it to exist
       - name: Create and wait Kinesis stream
         run: |
-          aws kinesis create-stream --stream-name ${{ env.STREAM_NAME }} --shard-count 1
-          aws kinesis wait stream-exists --stream-name ${{ env.STREAM_NAME }}
+          chmod +x .github/scripts/create_stream.sh
+          .github/scripts/create_stream.sh
+        env:
+          STREAM_NAME: ${{ env.STREAM_NAME }}
 
       # Put words to sample stream with unique name based on run ID
       - name: Put words to sample stream
