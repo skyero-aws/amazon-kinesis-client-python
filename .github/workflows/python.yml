@@ -6,14 +6,10 @@
 name: Sample Run Tests and Dependabot
 on:
   push:
-    branches: [ master ]
+    branches: [ master, skyero-delete-tables ]
   pull_request_target:
     branches: [ master ]
     types: [opened, synchronize, reopened, unlabeled]
-
-concurrency:
-  group: python.yml
-  cancel-in-progress: false
 
 jobs:
   # Evaluates if the sample tests should run. If the workflow is triggered by a push OR
@@ -111,8 +107,8 @@ jobs:
       # Create unique identifiers for the stream name and application name
       - name: Set up unique identifiers
         run: |
-          STREAM_NAME="kclpysample-${{ matrix.os }}-py${{ matrix.python-version }}-jdk${{ matrix.jdk-version }}"
-          APP_NAME="PythonKCLSample-${{ matrix.os }}-py${{ matrix.python-version }}-jdk${{ matrix.jdk-version }}"
+          STREAM_NAME="kclpysample-${{ github.run_id }}-${{ matrix.os }}-py${{ matrix.python-version }}-jdk${{ matrix.jdk-version }}"
+          APP_NAME="PythonKCLSample-${{ github.run_id }}-${{ matrix.os }}-py${{ matrix.python-version }}-jdk${{ matrix.jdk-version }}"
           echo "STREAM_NAME=$STREAM_NAME" >> $GITHUB_ENV
           echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
 

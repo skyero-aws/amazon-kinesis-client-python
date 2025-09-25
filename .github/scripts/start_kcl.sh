@@ -29,13 +29,13 @@ echo "Found $RECORD_COUNT_BEFORE records in stream before KCL start"
 if [[ "$RUNNER_OS" == "macOS" ]]; then
   brew install coreutils
   KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-  gtimeout 240 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
+  gtimeout 900 $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
 elif [[ "$RUNNER_OS" == "Linux" ]]; then
   KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-  timeout 240 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
+  timeout 900 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
 elif [[ "$RUNNER_OS" == "Windows" ]]; then
   KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
-  timeout 300 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
+  timeout 900 $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
 else
   echo "Unknown OS: $RUNNER_OS"
   exit 1
