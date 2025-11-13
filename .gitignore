@@ -6,6 +6,7 @@
 /dist/
 /docs/_build/
 /.eggs/
+/.amazonq/
 
 # IntelliJ idea stuff
 .idea
