@@ -14,5 +14,6 @@ for SUFFIX in "-CoordinatorState" "-WorkerMetricStats"; do
     for i in {1..10}; do
       aws dynamodb delete-table --table-name $APP_NAME$SUFFIX && break ||
       echo "Table deletion failed, attempt $i/10. Retrying DynamoDB Table deletion in $((i * 3))s" && sleep $((i * 3))
+    done
   fi
 done
