@@ -6,9 +6,9 @@
 name: Sample Run Tests and Dependabot
 on:
   push:
-    branches: [ master, skyero-delete-tables ]
+    branches: [ master, '*-test' ]
   pull_request_target:
-    branches: [ master ]
+    branches: [ master, '*-test' ]
     types: [opened, synchronize]
 
 jobs:
