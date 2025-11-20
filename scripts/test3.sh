@@ -1,14 +1,8 @@
 #!/bin/sh
 
-SETUP_SCRIPT_POM="setup.py"
-SETUP_SCRIPT_LIST="setup_test.py"
-JAR_FILE="amazon-kinesis-client-multilang-3.0.3-SNAPSHOT.jar"
-JAR_DIR="amazon_kclpy/jars"
+SETUP_SCRIPT_LIST="setup_unified.py"
 
-python "${SETUP_SCRIPT_LIST}" download_jars && \
-python "${SETUP_SCRIPT_LIST}" install && \
-python "${SETUP_SCRIPT_LIST}" download_more_jars && \
-python "${SETUP_SCRIPT_LIST}" install_more
+python "${SETUP_SCRIPT_LIST}" install
 
 if [ $? -eq 0 ]; then
   echo "Setup success"
