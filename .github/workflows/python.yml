@@ -125,6 +125,14 @@ jobs:
           STREAM_NAME: ${{ env.STREAM_NAME }}
           APP_NAME: ${{ env.APP_NAME }}
 
+      - name: Debug Python environment
+        run: |
+          echo "Python location: $(which python3)"
+          echo "Python version: $(python3 --version)"
+          echo "PATH: $PATH"
+          ls -la /opt/hostedtoolcache/Python/3.9.25/x64/bin/ | head -10
+          ls -la sample_kinesis_wordputter.py
+
       # Create kinesis stream with unique name and wait for it to exist
       - name: Create and wait Kinesis stream
         run: |
