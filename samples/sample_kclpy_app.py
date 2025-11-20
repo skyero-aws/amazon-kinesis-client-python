@@ -40,7 +40,7 @@ class RecordProcessor(processor.RecordProcessorBase):
             processor has been assigned.
         """
         self._largest_seq = (None, None)
-        self._last_checkpoint_time = time.time()
+        self._last_checkpoint_time = 0
 
     def checkpoint(self, checkpointer, sequence_number=None, sub_sequence_number=None):
         """
