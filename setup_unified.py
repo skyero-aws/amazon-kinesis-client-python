@@ -33,7 +33,8 @@ class UnifiedJarDownloader:
     def __init__(self, destdir=JAR_DIRECTORY):
         self.destdir = destdir
         self.pom_packages = self.parse_packages_from_pom()
-        self.json_packages = self.parse_packages_from_json()
+        # Don't parse JSON in __init__, do it after unzipping
+        self.json_packages = []
 
     def parse_packages_from_pom(self):
         try:
@@ -85,6 +86,9 @@ class UnifiedJarDownloader:
     def download_all_jars(self):
         # First unzip the main JAR if it exists
         self.unzip_jar_if_needed()
+
+        # Now parse JSON after unzipping
+        self.json_packages = self.parse_packages_from_json()
 
         # Download from both POM and JSON sources
         all_packages = self.pom_packages + self.json_packages
