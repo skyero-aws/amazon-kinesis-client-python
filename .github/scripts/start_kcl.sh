@@ -2,7 +2,7 @@
 set -e
 set -o pipefail
 
-chmod +x samples/sample.properties
+chmod +x .github/resources/sample.properties
 chmod +x samples/sample_kclpy_app.py
 
 # Get records from stream to verify they exist before continuing
@@ -14,10 +14,10 @@ echo "Found $RECORD_COUNT_BEFORE records in stream before KCL start"
 
 if [[ "$RUNNER_OS" == "macOS" ]]; then
   brew install coreutils
-  KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
+  KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties .github/resources/sample.properties)
   gtimeout $RUN_TIME_SECONDS $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
 elif [[ "$RUNNER_OS" == "Linux" || "$RUNNER_OS" == "Windows" ]]; then
-  KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties samples/sample.properties)
+  KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties .github/resources/sample.properties)
   timeout $RUN_TIME_SECONDS $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
 else
   echo "Unknown OS: $RUNNER_OS"
