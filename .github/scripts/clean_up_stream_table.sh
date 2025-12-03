@@ -15,6 +15,8 @@ fi
 delete_table() {
   table_name=$1
   if aws dynamodb describe-table --table-name $table_name &>/dev/null; then
+    echo "=== Table contents for $table_name before deletion ==="
+    aws dynamodb scan --table-name $table_name --output json
     echo "Deleting table $table_name"
     for i in {1..10}; do
       aws dynamodb delete-table --table-name $table_name && break ||
