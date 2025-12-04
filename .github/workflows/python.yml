@@ -131,12 +131,12 @@ jobs:
           STREAM_NAME: ${{ env.STREAM_NAME }}
 
       # Put words to sample stream with unique name based on run ID
-      - name: Put words to sample stream
-        run: |
-          chmod +x .github/scripts/put_words_to_stream.sh
-          .github/scripts/put_words_to_stream.sh
-        env:
-          STREAM_NAME: ${{ env.STREAM_NAME }}
+#      - name: Put words to sample stream
+#        run: |
+#          chmod +x .github/scripts/put_words_to_stream.sh
+#          .github/scripts/put_words_to_stream.sh
+#        env:
+#          STREAM_NAME: ${{ env.STREAM_NAME }}
 
       # Run sample KCL application
       - name: Start KCL application
