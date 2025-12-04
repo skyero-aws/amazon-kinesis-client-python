@@ -5,8 +5,10 @@ from __future__ import print_function
 import glob
 import sys
 
+import json
 import os
 import shutil
+import zipfile
 import xml.etree.ElementTree as ET
 
 from setuptools import Command
@@ -57,7 +59,16 @@ class MavenJarDownloader:
         self.on_completion = on_completion
         self.destdir = destdir
         self.packages_file = packages_file
-        self.packages = self.parse_packages_from_pom()
+
+        json_file_path = os.path.join(destdir, 'pom-sync', 'multilang_dependencies.json')
+        if os.path.exists(json_file_path):
+            self.packages = self.parse_packages_from_json(json_file_path)
+        else:
+            self.extract_multilang_jar()
+            if os.path.exists(json_file_path):
+                self.packages = self.parse_packages_from_json(json_file_path)
+            else:
+                self.packages = self.parse_packages_from_pom()
 
     def warning_string(self, missing_jars=[]):
         s = '''The following jars were not installed because they were not
@@ -94,6 +105,16 @@ Which will download the required jars and rerun the install.
                 else:
                     dependency.append(val)
             packages.append(tuple(dependency))
+
+        return packages
+
+    def parse_packages_from_json(self, json_file):
+        with open(json_file, 'r') as f:
+            data = json.load(f)
+
+        packages = []
+        for dep in data['dependencies']:
+            packages.append((dep['groupId'], dep['artifactId'], dep['version']))
 
         return packages
 
@@ -147,6 +168,20 @@ Which will download the required jars and rerun the install.
             else:
                 url = self.package_url(package[0], package[1], package[2])
                 self.download_file(url, dest)
+
+    def extract_multilang_jar(self):
+        import glob
+        multilang_jars = glob.glob(os.path.join(self.destdir, 'amazon-kinesis-client-multilang-*.jar'))
+        if multilang_jars:
+            jar_path = multilang_jars[0]
+            extract_dir = os.path.join(self.destdir, 'pom-sync')
+            os.makedirs(extract_dir, exist_ok=True)
+
+            with zipfile.ZipFile(jar_path, 'r') as jar:
+                for file in jar.namelist():
+                    if file.endswith('multilang_dependencies.json'):
+                        jar.extract(file, self.destdir)
+                        break
 
 
 class DownloadJarsCommand(Command):
