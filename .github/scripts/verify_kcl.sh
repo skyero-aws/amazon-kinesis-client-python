@@ -11,7 +11,6 @@ aws dynamodb scan --table-name $APP_NAME --projection-expression "leaseKey,check
 
 if [ "$NUM_LEASES_FOUND" -gt 0 ] && [ "$NUM_CHECKPOINTS_FOUND" -gt 0 ]; then
   echo "Test passed: Found both leases and non-TRIM_HORIZON checkpoints in DDB (KCL is fully functional)"
-  exit 0
 else
   echo "Test failed: KCL not fully functional"
   echo "Lease(s) found: $NUM_LEASES_FOUND"
