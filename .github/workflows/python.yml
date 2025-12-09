@@ -96,6 +96,10 @@ jobs:
         run: |
           python -m pytest
 
+      - name: Temp JAR move step
+        run: |
+          mv -v amazon-kinesis-client-multilang-3.0.3-SNAPSHOT.jar amazon_kclpy/jars/ && echo "move successful"
+
       # Download .jar files required to run KCL app
       - name: Install .jar files
         run: |
@@ -146,7 +150,7 @@ jobs:
         env:
           RUNNER_OS: ${{ matrix.os }}
           STREAM_NAME: ${{ env.STREAM_NAME }}
-          RUN_TIME_SECONDS: 900
+          RUN_TIME_SECONDS: 90
 
       # Check and verify results of KCL test
       - name: Verify KCL Functionality
