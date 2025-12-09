@@ -62,12 +62,16 @@ class MavenJarDownloader:
 
         json_file_path = os.path.join(destdir, 'pom-sync', 'multilang_dependencies.json')
         if os.path.exists(json_file_path):
+            print('os path exists, parsing dependencies from json')
             self.packages = self.parse_packages_from_json(json_file_path)
         else:
+            print('os path does not exist, trying to extract')
             self.extract_multilang_jar()
             if os.path.exists(json_file_path):
+                print('os path exists after extraction, parsing dependencies from json')
                 self.packages = self.parse_packages_from_json(json_file_path)
             else:
+                print('os path does not exist after extraction, parsing dependencies from pom')
                 self.packages = self.parse_packages_from_pom()
 
     def warning_string(self, missing_jars=[]):
@@ -89,6 +93,7 @@ Which will download the required jars and rerun the install.
         return s
 
     def parse_packages_from_pom(self):
+        print('calling parse_packages_from_pom')
         maven_root = ET.parse(self.packages_file).getroot()
         maven_version = '{http://maven.apache.org/POM/4.0.0}'
         # dictionary of common package versions encoded in `properties` section
@@ -109,6 +114,7 @@ Which will download the required jars and rerun the install.
         return packages
 
     def parse_packages_from_json(self, json_file):
+        print('calling parse_packages_from_json')
         with open(json_file, 'r') as f:
             data = json.load(f)
 
