@@ -41,7 +41,8 @@ jobs:
     permissions:
       id-token: write
     if: ${{ always() && needs.check-if-should-run.outputs.should_run == 'true' && (needs.check-if-should-run.outputs.is_fork != 'true' || needs.wait-for-approval.result == 'success') }}
-    timeout-minutes: 20
+    # TEMP CI: longer KCL run time needs more headroom
+    timeout-minutes: 30
     runs-on: ${{ matrix.os }}
     defaults:
       run:

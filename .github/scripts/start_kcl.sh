@@ -12,7 +12,8 @@ if [[ "$RUNNER_OS" == "macOS" ]]; then
 elif [[ "$RUNNER_OS" == "Linux" || "$RUNNER_OS" == "Windows" ]]; then
   KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties .github/resources/github_workflow.properties)
   # TEMP CI: trickle traffic and a second worker so lease balancing runs
-  sample_kinesis_wordputter.py --stream $STREAM_NAME -w cat -w dog -p 15 > putter.log 2>&1 &
+  # "dog" hashes to shardId-000000000000 only, leaving shards 1-3 idle (one hot shard, like the customer)
+  sample_kinesis_wordputter.py --stream $STREAM_NAME -w dog -p 15 > putter.log 2>&1 &
   PUTTER_PID=$!
   timeout $RUN_TIME_SECONDS $KCL_COMMAND > kcl_output_2.log 2>&1 &
   WORKER_2_PID=$!

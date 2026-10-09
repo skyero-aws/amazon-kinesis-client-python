@@ -11,11 +11,18 @@ aws dynamodb scan --table-name $APP_NAME --projection-expression "leaseKey,check
 
 # TEMP CI: confirm useAbsoluteReBalanceThreshold was parsed and applied by the leader
 echo "==========REBALANCE CONFIG=========="
-grep -h "Processing (key=useAbsoluteReBalanceThreshold\|Processing (key=reBalanceThresholdPercentage" kcl_output*.log
-echo "==========REBALANCE RANGES (expect upper/lower = avg +/- 5, upper capped at 100)=========="
-grep -h -B2 "Range for re-balance" kcl_output*.log | tail -40
-echo "==========LEASE HANDOFFS=========="
-grep -h -c "Initiated graceful lease handoff" kcl_output*.log || true
+grep -h "Processing (key=" kcl_output*.log | sed 's/.*Processing/Processing/' | sort | uniq -c
+echo "==========REBALANCE RANGES (expect upper/lower = avg +/- 5, upper capped at 100), count per range=========="
+grep -h "Range for re-balance" kcl_output*.log | sed 's/.*Range for/Range for/' | sort | uniq -c
+echo "==========BALANCING SUMMARY (both workers)=========="
+echo "Re-balance checks:          $(cat kcl_output*.log | grep -c 'Range for re-balance' || true)"
+echo "Leases picked to move:      $(cat kcl_output*.log | grep -c 'Leases taken from worker' || true)"
+echo "Moves blocked by receiver:  $(cat kcl_output*.log | grep -c 'No worker to assign anymore' || true)"
+echo "Graceful lease handoffs:    $(cat kcl_output*.log | grep -c 'Initiated graceful lease handoff' || true)"
+echo "==========HANDOFFS PER SHARD=========="
+grep -h "Initiated graceful lease handoff" kcl_output*.log | grep -o "shardId-[0-9]*" | sort | uniq -c || true
+echo "==========LAST 3 BALANCING DECISIONS=========="
+grep -h -A1 "Range for re-balance" kcl_output*.log | tail -6
 if ! grep -q "Processing (key=useAbsoluteReBalanceThreshold, value=true)" kcl_output*.log; then
   echo "Test failed: useAbsoluteReBalanceThreshold was not processed"
   exit 1
