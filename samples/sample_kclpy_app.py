@@ -125,9 +125,12 @@ class RecordProcessor(processor.RecordProcessorBase):
                     self._largest_seq = (seq, sub_seq)
 
             #
-            # Checkpoints every self._CHECKPOINT_FREQ_SECONDS seconds
+            # Checkpoints every self._CHECKPOINT_FREQ_SECONDS seconds, once a record has been seen. Without a record
+            # there is no sequence number to checkpoint at (e.g. an idle shard with
+            # callProcessRecordsEvenForEmptyRecordList=true).
             #
-            if time.time() - self._last_checkpoint_time > self._CHECKPOINT_FREQ_SECONDS:
+            if self._largest_seq[0] is not None and \
+                    time.time() - self._last_checkpoint_time > self._CHECKPOINT_FREQ_SECONDS:
                 self.checkpoint(process_records_input.checkpointer, str(self._largest_seq[0]), self._largest_seq[1])
                 self._last_checkpoint_time = time.time()
 
