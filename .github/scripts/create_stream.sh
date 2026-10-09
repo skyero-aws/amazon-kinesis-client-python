@@ -2,7 +2,8 @@
 set -e
 
 for i in {1..10}; do
-  if aws kinesis create-stream --stream-name $STREAM_NAME --shard-count 1; then
+  # TEMP CI: 4 shards so two workers have leases to balance
+  if aws kinesis create-stream --stream-name $STREAM_NAME --shard-count 4; then
     break
   else
     echo "Stream creation failed, attempt $i/10. Waiting $((i * 3)) seconds..."

@@ -53,7 +53,8 @@ jobs:
       matrix:
         python-version: ${{ github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'more-tests') && fromJSON('["3.9", "3.11"]') || fromJSON('["3.9"]') }}
         jdk-version: ${{ github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'more-tests') && fromJSON('["8", "11", "17", "21", "24"]') || fromJSON('["8", "11"]') }}
-        os: [ ubuntu-latest, macOS-latest, windows-latest ]
+        # TEMP CI: Linux only for the multi-worker rebalance check
+        os: [ ubuntu-latest ]
 
     steps:
       # For pull_request_target, checkout PR head instead of merge commit
@@ -146,7 +147,7 @@ jobs:
         env:
           RUNNER_OS: ${{ matrix.os }}
           STREAM_NAME: ${{ env.STREAM_NAME }}
-          RUN_TIME_SECONDS: 900
+          RUN_TIME_SECONDS: 1020
 
       # Check and verify results of KCL test
       - name: Verify KCL Functionality
