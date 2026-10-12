@@ -10,7 +10,18 @@ if [[ "$RUNNER_OS" == "macOS" ]]; then
   KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties .github/resources/github_workflow.properties)
   gtimeout $RUN_TIME_SECONDS $KCL_COMMAND 2>&1 | tee kcl_output.log  || [ $? -eq 124 ]
 elif [[ "$RUNNER_OS" == "Linux" || "$RUNNER_OS" == "Windows" ]]; then
-  KCL_COMMAND=$(amazon_kclpy_helper.py --print_command --java $(which java) --properties .github/resources/github_workflow.properties)
+  # TEMP CI: run each worker in its own container so KCL measures per-worker CPU. A token file at the
+  # Kubernetes service account path makes KCL treat the container as EKS and read the container's cgroup v2
+  # CPU usage (limited to 1 CPU) instead of falling back to throughput-based balancing.
+  docker build -t kclpy-worker -f .github/resources/Dockerfile.kcl-worker .
+  mkdir -p /tmp/fake-eks && echo "fake-token" > /tmp/fake-eks/token
+  run_worker() {
+    docker run --rm --name "$1" --cpus=1 \
+      -v /tmp/fake-eks/token:/var/run/secrets/kubernetes.io/serviceaccount/token:ro \
+      -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN -e AWS_REGION -e AWS_DEFAULT_REGION \
+      -e RUN_SECONDS="$2" \
+      kclpy-worker bash -c 'exec timeout "$RUN_SECONDS" $(amazon_kclpy_helper.py --print_command --java "$(command -v java)" --properties .github/resources/github_workflow.properties)'
+  }
   # TEMP CI: trickle traffic and a second worker so lease balancing runs
   # Near-idle, sporadic traffic: one record every 15s with a random partition key, so it lands on a random shard
   python -u -c '
@@ -27,13 +38,12 @@ while True:
     time.sleep(15)
 ' "$STREAM_NAME" > putter.log 2>&1 &
   PUTTER_PID=$!
-  # Start the second worker 30s later so the workers don't race to create the lease table; exec keeps
-  # WORKER_2_PID pointing at timeout so the trap below can stop it
-  (sleep 30; exec timeout $((RUN_TIME_SECONDS - 30)) $KCL_COMMAND) > kcl_output_2.log 2>&1 &
+  # Start the second worker 30s later so the workers don't race to create the lease table
+  (sleep 30; run_worker kcl-worker-2 $((RUN_TIME_SECONDS - 30))) > kcl_output_2.log 2>&1 &
   WORKER_2_PID=$!
-  # Stop background processes however this step exits
-  trap 'kill $PUTTER_PID $WORKER_2_PID 2>/dev/null || true' EXIT
-  timeout $RUN_TIME_SECONDS $KCL_COMMAND 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
+  # Stop background processes and containers however this step exits
+  trap 'kill $PUTTER_PID $WORKER_2_PID 2>/dev/null; docker rm -f kcl-worker-1 kcl-worker-2 >/dev/null 2>&1 || true' EXIT
+  run_worker kcl-worker-1 $RUN_TIME_SECONDS 2>&1 | tee kcl_output.log || [ $? -eq 124 ]
   wait $WORKER_2_PID || true
 else
   echo "Unknown OS: $RUNNER_OS"
